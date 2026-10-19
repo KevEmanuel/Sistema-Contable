@@ -17,7 +17,7 @@ public class periodoContable
     public  DateTime FechaInicio { get;set;}
     public  DateTime FechaFin {get;set;}
     public bool EstaCerrado {get;set;}
-    public DateTime FechaCreación {get;set;}
+    public DateTime FechaCreacion {get;set;}
 
     //relación de un periodo pertenece a uma empresa
     public Empresa? Empresa {get;set;}

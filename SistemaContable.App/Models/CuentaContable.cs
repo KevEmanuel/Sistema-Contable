@@ -2,27 +2,40 @@ using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SistemaContableDTE.Models;
-//clase para contabilizar el periodo contables
-public class PeriodoContable
+
+public class CuentaContable
 {
     [Key]
-    public int PeriodoContableId { get; set; }
+    public int CuentaContableId { get; set; }
 
     [Required]
     public int EmpresaId { get; set; }
 
     [Required]
-    [StringLength(100)]
+    [StringLength(30)]
+    public string Codigo { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(200)]
     public string Nombre { get; set; } = string.Empty;
 
-    public DateTime FechaInicio { get; set; }
+    [StringLength(20)]
+    public string TipoCuenta { get; set; } = string.Empty;
+    // Activo, Pasivo, Patrimonio, Ingreso, Costo o Gasto.
 
-    public DateTime FechaFin { get; set; }
+    public int? CuentaPadreId { get; set; }
 
-    public bool EstaCerrado { get; set; } = false;
+    public int Nivel { get; set; }
+
+    public bool PermiteMovimientos { get; set; } = true;
+
+    public bool Activa { get; set; } = true;
 
     public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
-    // Relación: un período pertenece a una empresa.
+    // Relación con la empresa.
     public Empresa? Empresa { get; set; }
+
+    // Relación consigo misma para formar el catálogo jerárquico.
+    public CuentaContable? CuentaPadre { get; set; }
 }
