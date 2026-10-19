@@ -1,0 +1,16 @@
+# Compilación .NET
+bin/
+obj/
+
+# Configuración de Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Archivos de usuario
+*.user
+*.suo
+
+# Base de datos local
+*.db
+*.db-shm
+*.db-wal

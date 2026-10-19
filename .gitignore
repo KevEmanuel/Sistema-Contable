@@ -1,0 +1,15 @@
+# Compilacion de .NET
+[Bb]in/
+[Oo]bj/
+.vs/
+
+# Archivos locales de usuario
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Bases de datos locales
+*.db
+*.db-shm
+*.db-wal
