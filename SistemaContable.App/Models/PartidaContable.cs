@@ -54,4 +54,7 @@ public class PartidaContable
 //relacion con la clase detallePartida 
     public ICollection<DetallePartida> Detalles { get; set; } =
         new List<DetallePartida>();
+
+    public Usuario? CreadoPor { get; set; }
+    public Usuario? AprobadoPor { get; set; }
 }
