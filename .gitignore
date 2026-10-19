@@ -1,15 +1,16 @@
-# Compilacion de .NET
-[Bb]in/
-[Oo]bj/
-.vs/
+# Compilación .NET
+bin/
+obj/
 
-# Archivos locales de usuario
+# Configuración de Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Archivos de usuario
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
 
-# Bases de datos locales
+# Base de datos local
 *.db
 *.db-shm
 *.db-wal
