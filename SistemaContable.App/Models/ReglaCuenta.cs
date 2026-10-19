@@ -17,7 +17,7 @@ public class ReglaCuenta
 
     [Required]
     [StringLength(500)]
-    public string Formula{get;set}= string.Empty;
+    public string Formula{get;set;}= string.Empty;
 
     public int Orden{get;set;}
 
