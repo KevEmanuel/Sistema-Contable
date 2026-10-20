@@ -5,6 +5,7 @@ using System.Runtime.Intrinsics.Arm;
 using System.Windows;
 using SistemaContableDTE.Data;
 using SistemaContableDTE.Models;
+using Microsoft.EntityFrameworkCore; 
 
 namespace SistemaContableDTE.Services;
 
