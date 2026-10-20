@@ -10,6 +10,7 @@ public  static class ServicioContrasena
     private const int TamanoSal = 16;
     private const int TamanoHas = 32;
 
+    //funcion para generar el hash
     public static string CrearHash(string contrasena)
     {
         if(string.IsNullOrWhiteSpace(contrasena))
@@ -22,6 +23,7 @@ public  static class ServicioContrasena
 
     }
 
+    //funcion para verificar la contrasena, si guardo mediante hash
     public static bool Verificar(string contrasena, string hashGuardado)
     {
         try
