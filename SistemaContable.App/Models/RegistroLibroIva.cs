@@ -35,5 +35,5 @@ public class RegistroLibroIva
 
     public DocumentoDte? DocumentoDte { get; set; }
 
-    public periodoContable? periodoContable { get; set; }
+    public PeriodoContable? PeriodoContable { get; set; }
 }

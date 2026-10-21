@@ -8,36 +8,47 @@ public static class InicializadorBaseDatos
     
     public static void Inicializar()
     {
-        //generación de un nuevo elemento de la clase ContabilidadDbContex
         using var contexto = new ContabilidadDbContext();
 
-        //Aplica las migraciones pendientes al  iniciar el sistema
         contexto.Database.Migrate();
-        //Evita generar los repetidamente, cada ves que se genera la aplicación 
-        if(contexto.Roles.Any())
-        return;
 
-        contexto.Roles.AddRange(
-        new Rol
+        var roles = contexto.Roles.ToList();
+        var rolAdministrador = roles.FirstOrDefault(
+            rol => rol.Nombre == "Administrador");
+        var rolAdministradorConError = roles.FirstOrDefault(
+            rol => rol.Nombre == "Admministrador");
+
+        if (rolAdministrador is null && rolAdministradorConError is not null)
         {
-            Nombre = "Admministrador",
-            Descripcion="Encargado de Gestionar, Informacion, configuraciones etc"      
-        },
-        new Rol
-        {
-            Nombre = "Contador",
-            Descripcion = "Encardado de subir los DTE, para generar los libros contables"
-        },
-        new Rol
-        {
-            Nombre = "Auditor",
-            Descripcion= "Consulta los libros contabilidad, Reportes Bitacora de auditorias"
+            rolAdministradorConError.Nombre = "Administrador";
         }
-        );
+        else if (rolAdministrador is null)
+        {
+            contexto.Roles.Add(new Rol
+            {
+                Nombre = "Administrador",
+                Descripcion = "Encargado de gestionar información y configuraciones."
+            });
+        }
+
+        if (!roles.Any(rol => rol.Nombre == "Contador"))
+        {
+            contexto.Roles.Add(new Rol
+            {
+                Nombre = "Contador",
+                Descripcion = "Encargado de registrar DTE y generar libros contables."
+            });
+        }
+
+        if (!roles.Any(rol => rol.Nombre == "Auditor"))
+        {
+            contexto.Roles.Add(new Rol
+            {
+                Nombre = "Auditor",
+                Descripcion = "Consulta libros contables, reportes y bitácoras de auditoría."
+            });
+        }
+
         contexto.SaveChanges();
-        
     }
-    
-
 }
-

@@ -11,7 +11,9 @@ public class ContabilidadDbContext : DbContext
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<UsuarioRol> UsuarioRoles { get; set; } = null!;
-    public DbSet<periodoContable> PeriodosContables { get; set; } = null!;
+    //correcion de error en minucula
+    //public DbSet<PeriodoContable> PeriodosContables { get; set; } = null!;
+    public DbSet<PeriodoContable> PeriodosContables { get; set; }
     public DbSet<CuentaContable> CuentasContables { get; set; } = null!;
 
     public DbSet<Tercero> Terceros { get; set; } = null!;

@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SistemaContableDTE.Models;
-public class periodoContable
+public class PeriodoContable
 {
 
     [Key]

@@ -41,7 +41,7 @@ public class ExportacionFiscal
 
     public Empresa? Empresa { get; set; }
 
-    public periodoContable? periodoContable { get; set; }
+    public PeriodoContable? PeriodoContable { get; set; }
 
     public Usuario? GeneradoPor { get; set; }
 

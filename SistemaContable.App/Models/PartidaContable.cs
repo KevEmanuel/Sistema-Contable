@@ -43,7 +43,7 @@ public class PartidaContable
 
     public Empresa? Empresa { get; set; }
 
-    public periodoContable? periodoContable { get; set; }
+    public PeriodoContable? PeriodoContable { get; set; }
 
     public DocumentoDte? DocumentoDte { get; set; }
 

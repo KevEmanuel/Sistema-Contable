@@ -1,12 +1,11 @@
 ﻿<Window x:Class="SistemaContable.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SistemaContable.App"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        xmlns:views="clr-namespace:SistemaContableDTE.Views"
+        Title="Sistema Contable DTE"
+        Width="1000"
+        Height="760"
+        WindowStartupLocation="CenterScreen">
 
-    </Grid>
-</Window>
+    <views:ConfiguracionInicialView />
+</Window> 
