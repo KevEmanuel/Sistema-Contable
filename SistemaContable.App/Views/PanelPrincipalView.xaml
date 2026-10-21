@@ -112,7 +112,13 @@
                         Height="35"
                         HorizontalAlignment="Left"
                         Margin="0,25,0,0"
-                        Click="AbrirCatalogoCuentas_Click" />
+                        Click="AbrirCatalogoCuentas_Click"/>
+                <Button Content="Administrar reglas contables"
+                        Width="230"
+                        Height="35"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,0"
+                        Click="AbrirReglasContables_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>
