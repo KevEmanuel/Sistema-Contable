@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Input;
 using SistemaContableDTE.Models;
 using SistemaContableDTE.Services;
@@ -32,6 +33,9 @@ public class LoginViewModel : ViewModelBase
 
     public ICommand IniciarSesionCommand => iniciarSesionCommand;
 
+    //Inicio de sesion exitoso
+    public event Action? InicioSesionExitoso;
+
     public LoginViewModel()
     {
         iniciarSesionCommand = new RelayCommand(IniciarSesion);
@@ -56,5 +60,7 @@ public class LoginViewModel : ViewModelBase
         SesionActual.Iniciar(usuario);
         //mensaje de confirmacion con el usuario y nombre del sesion actual
         Mensaje = $"Bienvenido, {usuario.Nombre}.";
+        //llamada del evento ,de sesion 
+        InicioSesionExitoso?.Invoke();
     }
 }
