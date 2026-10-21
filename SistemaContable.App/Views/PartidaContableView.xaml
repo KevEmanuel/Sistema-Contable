@@ -1,0 +1,233 @@
+<UserControl x:Class="SistemaContableDTE.Views.PartidasContablesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
+
+    <UserControl.DataContext>
+        <vm:PartidasContablesViewModel />
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30">
+
+            <Grid Margin="0,0,0,20">
+                <TextBlock Text="Partidas contables manuales"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center" />
+
+                <Button Content="Volver al panel"
+                        Width="170"
+                        Height="32"
+                        HorizontalAlignment="Right"
+                        Click="VolverAlPanelPrincipal_Click" />
+            </Grid>
+
+            <GroupBox Header="Encabezado de la partida"
+                      Margin="0,0,0,15">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="3*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Fecha" />
+                        <DatePicker SelectedDate="{Binding Fecha}"
+                                    Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Período contable" />
+                        <ComboBox ItemsSource="{Binding Periodos}"
+                                  SelectedItem="{Binding PeriodoSeleccionado}"
+                                  DisplayMemberPath="Nombre"
+                                  Height="28"
+                                  Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Glosa *" />
+                        <TextBox Text="{Binding Glosa,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="Líneas de la partida"
+                      Margin="0,0,0,15">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0"
+                          Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="145" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0"
+                                    Margin="0,0,12,0">
+                            <TextBlock Text="Cuenta contable" />
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaSeleccionada}"
+                                      DisplayMemberPath="Nombre"
+                                      Height="28"
+                                      Margin="0,5,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1"
+                                    Margin="0,0,12,0">
+                            <TextBlock Text="Concepto" />
+                            <TextBox Text="{Binding Concepto,
+                                                    UpdateSourceTrigger=PropertyChanged}"
+                                     Height="28"
+                                     Margin="0,5,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2"
+                                    Margin="0,0,12,0">
+                            <TextBlock Text="Debe" />
+                            <TextBox Text="{Binding Debe,
+                                                    UpdateSourceTrigger=PropertyChanged}"
+                                     Height="28"
+                                     Margin="0,5,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="3"
+                                    Margin="0,0,12,0">
+                            <TextBlock Text="Haber" />
+                            <TextBox Text="{Binding Haber,
+                                                    UpdateSourceTrigger=PropertyChanged}"
+                                     Height="28"
+                                     Margin="0,5,0,0" />
+                        </StackPanel>
+
+                        <Button Grid.Column="4"
+                                Content="Agregar línea"
+                                Height="28"
+                                VerticalAlignment="Bottom"
+                                Command="{Binding AgregarLineaCommand}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1"
+                          Margin="0,0,0,10">
+                        <TextBlock Text="{Binding TotalDebe,
+                                                  StringFormat=Total Debe: {0:N2}}"
+                                   FontWeight="Bold" />
+
+                        <TextBlock Text="{Binding TotalHaber,
+                                                  StringFormat=Total Haber: {0:N2}}"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center" />
+
+                        <Button Content="Quitar línea seleccionada"
+                                Width="190"
+                                Height="28"
+                                HorizontalAlignment="Right"
+                                Command="{Binding QuitarLineaCommand}" />
+                    </Grid>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding Lineas}"
+                              SelectedItem="{Binding LineaSeleccionada,
+                                                     Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              SelectionMode="Single"
+                              Height="180">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Código"
+                                                Binding="{Binding CuentaContable.Codigo}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="Cuenta"
+                                                Binding="{Binding CuentaContable.Nombre}"
+                                                Width="*" />
+                            <DataGridTextColumn Header="Concepto"
+                                                Binding="{Binding Concepto}"
+                                                Width="180" />
+                            <DataGridTextColumn Header="Debe"
+                                                Binding="{Binding Debe,
+                                                                  StringFormat=N2}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="Haber"
+                                                Binding="{Binding Haber,
+                                                                  StringFormat=N2}"
+                                                Width="110" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </GroupBox>
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,10">
+                <Button Content="Guardar borrador"
+                        Width="160"
+                        Height="32"
+                        Margin="0,0,10,0"
+                        Command="{Binding GuardarBorradorCommand}" />
+
+                <Button Content="Contabilizar partida"
+                        Width="170"
+                        Height="32"
+                        Command="{Binding ContabilizarCommand}" />
+
+                <Button Content="Actualizar lista"
+                        Width="140"
+                        Height="32"
+                        HorizontalAlignment="Right"
+                        Margin="25,0,0,0"
+                        Command="{Binding CargarCommand}" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding Mensaje}"
+                       Foreground="DarkRed"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12" />
+
+            <GroupBox Header="Partidas registradas">
+                <DataGrid ItemsSource="{Binding Partidas}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          Height="220"
+                          Margin="15">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="N°"
+                                            Binding="{Binding NumeroPartida}"
+                                            Width="60" />
+                        <DataGridTextColumn Header="Fecha"
+                                            Binding="{Binding Fecha,
+                                                              StringFormat=d}"
+                                            Width="100" />
+                        <DataGridTextColumn Header="Glosa"
+                                            Binding="{Binding Glosa}"
+                                            Width="*" />
+                        <DataGridTextColumn Header="Origen"
+                                            Binding="{Binding TipoOrigen}"
+                                            Width="100" />
+                        <DataGridTextColumn Header="Estado"
+                                            Binding="{Binding Estado}"
+                                            Width="140" />
+                        <DataGridTextColumn Header="Líneas"
+                                            Binding="{Binding Detalles.Count}"
+                                            Width="75" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
