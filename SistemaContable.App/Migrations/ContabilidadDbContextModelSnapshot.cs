@@ -653,6 +653,39 @@ namespace SistemaContable.App.Migrations
                     b.ToTable("PartidasContables");
                 });
 
+            modelBuilder.Entity("SistemaContableDTE.Models.PeriodoContable", b =>
+                {
+                    b.Property<int>("PeriodoContableId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("EstaCerrado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PeriodoContableId");
+
+                    b.HasIndex("EmpresaId");
+
+                    b.ToTable("PeriodosContables");
+                });
+
             modelBuilder.Entity("SistemaContableDTE.Models.RegistroLibroIva", b =>
                 {
                     b.Property<int>("RegistroLibroIvaId")
@@ -725,8 +758,8 @@ namespace SistemaContable.App.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("RolEmpresa")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("RolEmpresa")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TipoDte")
                         .HasMaxLength(5)
@@ -910,39 +943,6 @@ namespace SistemaContable.App.Migrations
                     b.ToTable("UsuarioRoles");
                 });
 
-            modelBuilder.Entity("SistemaContableDTE.Models.periodoContable", b =>
-                {
-                    b.Property<int>("PeriodoContableId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("EmpresaId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("EstaCerrado")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("FechaFin")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("FechaInicio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("PeriodoContableId");
-
-                    b.HasIndex("EmpresaId");
-
-                    b.ToTable("PeriodosContables");
-                });
-
             modelBuilder.Entity("SistemaContableDTE.Models.ArchivoDte", b =>
                 {
                     b.HasOne("SistemaContableDTE.Models.DocumentoDte", "DocumentoDte")
@@ -1108,7 +1108,7 @@ namespace SistemaContable.App.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SistemaContableDTE.Models.periodoContable", "periodoContable")
+                    b.HasOne("SistemaContableDTE.Models.PeriodoContable", "PeriodoContable")
                         .WithMany()
                         .HasForeignKey("PeriodoContableId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1118,7 +1118,7 @@ namespace SistemaContable.App.Migrations
 
                     b.Navigation("GeneradoPor");
 
-                    b.Navigation("periodoContable");
+                    b.Navigation("PeriodoContable");
                 });
 
             modelBuilder.Entity("SistemaContableDTE.Models.ExportacionFiscalDetalle", b =>
@@ -1167,7 +1167,7 @@ namespace SistemaContable.App.Migrations
                         .WithMany()
                         .HasForeignKey("PartidaReversaId");
 
-                    b.HasOne("SistemaContableDTE.Models.periodoContable", "periodoContable")
+                    b.HasOne("SistemaContableDTE.Models.PeriodoContable", "PeriodoContable")
                         .WithMany()
                         .HasForeignKey("PeriodoContableId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1187,31 +1187,12 @@ namespace SistemaContable.App.Migrations
 
                     b.Navigation("PartidaReversa");
 
+                    b.Navigation("PeriodoContable");
+
                     b.Navigation("ReglaContable");
-
-                    b.Navigation("periodoContable");
                 });
 
-            modelBuilder.Entity("SistemaContableDTE.Models.RegistroLibroIva", b =>
-                {
-                    b.HasOne("SistemaContableDTE.Models.DocumentoDte", "DocumentoDte")
-                        .WithMany()
-                        .HasForeignKey("DocumentoDteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SistemaContableDTE.Models.periodoContable", "periodoContable")
-                        .WithMany()
-                        .HasForeignKey("PeriodoContableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DocumentoDte");
-
-                    b.Navigation("periodoContable");
-                });
-
-            modelBuilder.Entity("SistemaContableDTE.Models.ReglaContable", b =>
+            modelBuilder.Entity("SistemaContableDTE.Models.PeriodoContable", b =>
                 {
                     b.HasOne("Empresa", "Empresa")
                         .WithMany()
@@ -1222,18 +1203,48 @@ namespace SistemaContable.App.Migrations
                     b.Navigation("Empresa");
                 });
 
+            modelBuilder.Entity("SistemaContableDTE.Models.RegistroLibroIva", b =>
+                {
+                    b.HasOne("SistemaContableDTE.Models.DocumentoDte", "DocumentoDte")
+                        .WithMany()
+                        .HasForeignKey("DocumentoDteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SistemaContableDTE.Models.PeriodoContable", "PeriodoContable")
+                        .WithMany()
+                        .HasForeignKey("PeriodoContableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DocumentoDte");
+
+                    b.Navigation("PeriodoContable");
+                });
+
+            modelBuilder.Entity("SistemaContableDTE.Models.ReglaContable", b =>
+                {
+                    b.HasOne("Empresa", "Empresa")
+                        .WithMany()
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Empresa");
+                });
+
             modelBuilder.Entity("SistemaContableDTE.Models.ReglaCuenta", b =>
                 {
                     b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaContable")
                         .WithMany()
                         .HasForeignKey("CuentaContableId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SistemaContableDTE.Models.ReglaContable", "ReglaContable")
                         .WithMany("Cuentas")
                         .HasForeignKey("ReglaContableId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CuentaContable");
@@ -1277,17 +1288,6 @@ namespace SistemaContable.App.Migrations
                     b.Navigation("Rol");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("SistemaContableDTE.Models.periodoContable", b =>
-                {
-                    b.HasOne("Empresa", "Empresa")
-                        .WithMany()
-                        .HasForeignKey("EmpresaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Empresa");
                 });
 
             modelBuilder.Entity("SistemaContableDTE.Models.DocumentoDte", b =>

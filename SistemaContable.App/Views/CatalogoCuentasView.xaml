@@ -4,78 +4,118 @@
              xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
 
     <UserControl.DataContext>
-        <vm:CatalogoCuentasViewModel />
+        <vm:CatalogoCuentasViewModel/>
     </UserControl.DataContext>
 
     <Grid Margin="30">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Catálogo de cuentas contables"
-                   FontSize="26"
-                   FontWeight="Bold"
-                   Margin="0,0,0,20" />
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+            <TextBlock Text="Catálogo de cuentas contables"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+            <Button Content="Volver al panel"
+                    Width="140"
+                    Height="30"
+                    HorizontalAlignment="Right"
+                    Click="VolverAlPanelPrincipal_Click"/>
+        </Grid>
 
         <GroupBox Grid.Row="1"
-                  Header="Nueva cuenta de nivel 1"
+                  Header="Nueva cuenta contable"
                   Margin="0,0,0,15">
             <Grid Margin="15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="160" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="160" />
-                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="160"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Código *" />
+                <StackPanel Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,0,12,15">
+                    <TextBlock Text="Código *"/>
                     <TextBox Text="{Binding Codigo, UpdateSourceTrigger=PropertyChanged}"
                              Height="28"
-                             Margin="0,5,0,0" />
+                             Margin="0,5,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Nombre *" />
+                <StackPanel Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="0,0,12,15">
+                    <TextBlock Text="Nombre *"/>
                     <TextBox Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged}"
                              Height="28"
-                             Margin="0,5,0,0" />
+                             Margin="0,5,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Tipo *" />
+                <StackPanel Grid.Row="0"
+                            Grid.Column="2"
+                            Margin="0,0,0,15">
+                    <TextBlock Text="Tipo *"/>
                     <ComboBox ItemsSource="{Binding TiposCuenta}"
                               SelectedItem="{Binding TipoCuenta}"
                               Height="28"
-                              Margin="0,5,0,0" />
+                              Margin="0,5,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="3">
+                <StackPanel Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Cuenta padre (opcional)"/>
+                    <ComboBox ItemsSource="{Binding Cuentas}"
+                              SelectedItem="{Binding CuentaPadreSeleccionada}"
+                              DisplayMemberPath="Nombre"
+                              Height="28"
+                              Margin="0,5,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1"
+                            Grid.Column="2">
                     <CheckBox Content="Permite movimientos"
                               IsChecked="{Binding PermiteMovimientos}"
-                              Margin="0,0,0,8" />
+                              Margin="0,0,0,8"/>
 
-                    <Button Content="Guardar cuenta"
+                    <Button Content="Guardar nueva"
                             Height="28"
-                            Command="{Binding GuardarCommand}" />
+                            Margin="0,0,0,6"
+                            Command="{Binding GuardarCommand}"/>
+
+                    <Button Content="Actualizar seleccionada"
+                            Height="28"
+                            Margin="0,0,0,6"
+                            Command="{Binding ActualizarCommand}"/>
+
+                    <Button Content="Activar / Desactivar"
+                            Height="28"
+                            Command="{Binding CambiarEstadoCommand}"/>
                 </StackPanel>
+
             </Grid>
         </GroupBox>
 
         <TextBlock Grid.Row="2"
                    Text="{Binding Mensaje}"
                    Foreground="DarkRed"
-                   Margin="0,0,0,10" />
+                   Margin="0,0,0,10"/>
 
         <DataGrid Grid.Row="3"
                   ItemsSource="{Binding Cuentas}"
+                  SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay}"
+                  SelectionMode="Single"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   CanUserAddRows="False"
@@ -83,22 +123,27 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Código"
                                     Binding="{Binding Codigo}"
-                                    Width="140" />
+                                    Width="140"/>
+
                 <DataGridTextColumn Header="Nombre"
                                     Binding="{Binding Nombre}"
-                                    Width="*" />
+                                    Width="*"/>
+
                 <DataGridTextColumn Header="Tipo"
                                     Binding="{Binding TipoCuenta}"
-                                    Width="150" />
+                                    Width="150"/>
+
                 <DataGridTextColumn Header="Nivel"
                                     Binding="{Binding Nivel}"
-                                    Width="80" />
+                                    Width="80"/>
+
                 <DataGridCheckBoxColumn Header="Movimientos"
                                         Binding="{Binding PermiteMovimientos}"
-                                        Width="110" />
+                                        Width="110"/>
+
                 <DataGridCheckBoxColumn Header="Activa"
                                         Binding="{Binding Activa}"
-                                        Width="80" />
+                                        Width="80"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

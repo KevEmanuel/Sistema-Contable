@@ -91,4 +91,78 @@ public static class ServicioCatalogoCuentas
 
         return cuentaNueva;
     }
+    public static void ActualizarDatos(
+    int empresaId,
+    int cuentaContableId,
+    string codigo,
+    string nombre,
+    string tipoCuenta,
+    bool permiteMovimientos)
+    {
+        codigo = codigo.Trim();
+        nombre = nombre.Trim();
+        tipoCuenta = tipoCuenta.Trim();
+
+        if (string.IsNullOrWhiteSpace(codigo) ||
+            string.IsNullOrWhiteSpace(nombre) ||
+            string.IsNullOrWhiteSpace(tipoCuenta))
+        {
+            throw new ArgumentException(
+                "Código, nombre y tipo de cuenta son obligatorios.");
+        }
+
+        using var contexto = new ContabilidadDbContext();
+
+        CuentaContable? cuenta = contexto.CuentasContables
+            .SingleOrDefault(cuenta =>
+                cuenta.CuentaContableId == cuentaContableId &&
+                cuenta.EmpresaId == empresaId);
+
+        if (cuenta is null)
+        {
+            throw new InvalidOperationException(
+                "La cuenta seleccionada no existe.");
+        }
+
+        bool codigoExiste = contexto.CuentasContables.Any(otraCuenta =>
+            otraCuenta.EmpresaId == empresaId &&
+            otraCuenta.Codigo == codigo &&
+            otraCuenta.CuentaContableId != cuentaContableId);
+
+        if (codigoExiste)
+        {
+            throw new InvalidOperationException(
+                "Ya existe otra cuenta con ese código.");
+        }
+
+        cuenta.Codigo = codigo;
+        cuenta.Nombre = nombre;
+        cuenta.TipoCuenta = tipoCuenta;
+        cuenta.PermiteMovimientos = permiteMovimientos;
+
+        contexto.SaveChanges();
+    }
+
+    public static void CambiarEstado(
+        int empresaId,
+        int cuentaContableId)
+    {
+        using var contexto = new ContabilidadDbContext();
+
+        CuentaContable? cuenta = contexto.CuentasContables
+            .SingleOrDefault(cuenta =>
+                cuenta.CuentaContableId == cuentaContableId &&
+                cuenta.EmpresaId == empresaId);
+
+        if (cuenta is null)
+        {
+            throw new InvalidOperationException(
+                "La cuenta seleccionada no existe.");
+        }
+
+        cuenta.Activa = !cuenta.Activa;
+
+        contexto.SaveChanges();
+    }
+
 }
