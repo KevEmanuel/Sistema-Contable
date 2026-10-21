@@ -52,6 +52,9 @@ public class LoginViewModel : ViewModelBase
         }
 
         UsuarioAutenticado = usuario;
+        //Modificacion de la sesion actual
+        SesionActual.Iniciar(usuario);
+        //mensaje de confirmacion con el usuario y nombre del sesion actual
         Mensaje = $"Bienvenido, {usuario.Nombre}.";
     }
 }
