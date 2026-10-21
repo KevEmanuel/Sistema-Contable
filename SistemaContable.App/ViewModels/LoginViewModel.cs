@@ -54,10 +54,17 @@ public class LoginViewModel : ViewModelBase
             Mensaje = "Correo o contraseña incorrectos.";
             return;
         }
+        //asignacion de la empresa a un usuarios
+        int? empresaId = ServicioAutenticacion.ObtenerEmpresaId(usuario.UsuarioId);
+        if(empresaId is null)
+        {
+            Mensaje = "El usuario no tiene un empresa asignada";
+            return;
+        }
 
         UsuarioAutenticado = usuario;
         //Modificacion de la sesion actual
-        SesionActual.Iniciar(usuario);
+       SesionActual.Iniciar(usuario, empresaId.Value);
         //mensaje de confirmacion con el usuario y nombre del sesion actual
         Mensaje = $"Bienvenido, {usuario.Nombre}.";
         //llamada del evento ,de sesion 

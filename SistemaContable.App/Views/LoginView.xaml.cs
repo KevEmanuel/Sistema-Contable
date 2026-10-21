@@ -24,10 +24,9 @@ public partial class LoginView : UserControl
             Application.Current.MainWindow.Content = new PanelPrincipalView();
         }
     }
-    /*
     private void IniciarSesion_Click(
         object sender,
-        System.Windows.RoutedEventArgs e)
+        RoutedEventArgs e)
     {
         if (DataContext is LoginViewModel viewModel &&
             viewModel.IniciarSesionCommand.CanExecute(Contrasena.Password))
@@ -35,5 +34,4 @@ public partial class LoginView : UserControl
             viewModel.IniciarSesionCommand.Execute(Contrasena.Password);
         }
     }
-    */
 }

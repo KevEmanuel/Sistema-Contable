@@ -6,16 +6,21 @@ using SistemaContableDTE.Models;
  public static class SesionActual
 {
     public static Usuario? Usuario {get;set;}
-    public static bool EstaAutentificado => Usuario is not null;
 
-    public static void Iniciar(Usuario usuario)
+    //cambios para asiganar a una empresa activa
+    public static int? EmpresaId {get;set;}
+    public static bool EstaAutentificado => Usuario is not null && EmpresaId is not null;
+
+    public static void Iniciar(Usuario usuario, int empresaId)
     {
         Usuario = usuario;
+        EmpresaId= empresaId;
     }
     
     public static void Cerrar()
     {
         Usuario = null;
+        EmpresaId = null;
     }
 
 

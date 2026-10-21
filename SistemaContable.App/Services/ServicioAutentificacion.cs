@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using SistemaContableDTE.Data;
 using SistemaContableDTE.Models;
 
@@ -32,5 +33,11 @@ public static class ServicioAutenticacion
             usuario.HashContrasena)
             ? usuario
             : null;
+    }
+    public static int? ObtenerEmpresaId(int usuarioId)
+    {
+        using var contexto = new ContabilidadDbContext();
+        return contexto.UsuarioRoles.Where(asignacion => asignacion.UsuarioId == usuarioId).Select(asignacion =>(int?)asignacion.EmpresaId).FirstOrDefault();
+
     }
 }
