@@ -125,6 +125,12 @@
                         HorizontalAlignment="Left"
                         Margin="0,10,0,0"
                         Click="AbrirPartidasContables_Click"/>
+                <Button Content="Importar DTE JSON"
+                        Width="230"
+                        Height="35"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,0"
+                        Click="AbrirCargaDte_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

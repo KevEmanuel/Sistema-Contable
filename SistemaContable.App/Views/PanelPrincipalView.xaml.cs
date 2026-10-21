@@ -41,5 +41,16 @@ public partial class PanelPrincipalView : UserControl
                 new PartidasContablesView();
         }
     }
+    //modulo de carga DTE 04
+    private void AbrirCargaDte_Click(
+    object sender,
+    RoutedEventArgs e)
+{
+    if (Application.Current.MainWindow is not null)
+    {
+        Application.Current.MainWindow.Content =
+            new CargaDteView();
+    }
+}
 
 }
