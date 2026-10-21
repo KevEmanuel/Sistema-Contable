@@ -1,0 +1,222 @@
+<UserControl x:Class="SistemaContableDTE.Views.ValidacionFiscalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
+
+    <UserControl.DataContext>
+        <vm:ValidacionFiscalViewModel />
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30">
+
+            <Grid Margin="0,0,0,20">
+                <TextBlock Text="Validación fiscal de DTE"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center" />
+
+                <Button Content="Volver al panel"
+                        Width="170"
+                        Height="32"
+                        HorizontalAlignment="Right"
+                        Click="VolverAlPanelPrincipal_Click" />
+            </Grid>
+
+            <Button Content="Actualizar documentos"
+                    Width="170"
+                    Height="30"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,0,10"
+                    Command="{Binding CargarCommand}" />
+
+            <DataGrid ItemsSource="{Binding Documentos}"
+                      SelectedItem="{Binding DocumentoSeleccionado,
+                                             Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      SelectionMode="Single"
+                      Height="180"
+                      Margin="0,0,0,15">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Fecha"
+                                        Binding="{Binding FechaEmision,
+                                                          StringFormat=d}"
+                                        Width="100" />
+                    <DataGridTextColumn Header="Tipo"
+                                        Binding="{Binding TipoDte}"
+                                        Width="70" />
+                    <DataGridTextColumn Header="Código de generación"
+                                        Binding="{Binding CodigoGeneracion}"
+                                        Width="*" />
+                    <DataGridTextColumn Header="Estado"
+                                        Binding="{Binding Estado}"
+                                        Width="150" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <TextBlock Text="{Binding Mensaje}"
+                       Foreground="DarkRed"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12" />
+
+            <GroupBox Header="Registrar evidencia de Hacienda"
+                      Margin="0,0,0,15">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="0,0,12,10">
+                        <TextBlock Text="Fuente" />
+                        <ComboBox ItemsSource="{Binding FuentesEvidencia}"
+                                  SelectedItem="{Binding FuenteSeleccionada}"
+                                  Height="28"
+                                  Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="0,0,12,10">
+                        <TextBlock Text="Nuevo estado del DTE" />
+                        <ComboBox ItemsSource="{Binding EstadosDocumento}"
+                                  SelectedItem="{Binding EstadoDocumentoSeleccionado}"
+                                  Height="28"
+                                  Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0"
+                                Grid.Column="2"
+                                Margin="0,0,0,10">
+                        <TextBlock Text="Fecha de procesamiento" />
+                        <DatePicker SelectedDate="{Binding FechaProcesamiento}"
+                                    Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1"
+                                Grid.Column="0"
+                                Margin="0,0,12,10">
+                        <TextBlock Text="Sello recibido" />
+                        <TextBox Text="{Binding SelloRecibido}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1"
+                                Grid.Column="1"
+                                Margin="0,0,12,10">
+                        <TextBlock Text="Estado Hacienda" />
+                        <TextBox Text="{Binding EstadoHacienda}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1"
+                                Grid.Column="2"
+                                Margin="0,0,0,10">
+                        <TextBlock Text="Código de mensaje" />
+                        <TextBox Text="{Binding CodigoMensaje}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Observaciones o mensaje" />
+                        <TextBox Text="{Binding Observaciones}"
+                                 Height="52"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Button Grid.Row="2"
+                            Grid.Column="2"
+                            Content="Guardar evidencia"
+                            Height="32"
+                            VerticalAlignment="Bottom"
+                            Command="{Binding RegistrarEvidenciaCommand}" />
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="Registrar evento del DTE"
+                      Margin="0,0,0,15">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="180" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Tipo de evento" />
+                        <TextBox Text="{Binding TipoEvento}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Estado del evento" />
+                        <TextBox Text="{Binding EstadoEvento}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Fecha del evento" />
+                        <DatePicker SelectedDate="{Binding FechaEvento}"
+                                    Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Button Grid.Column="3"
+                            Content="Guardar evento"
+                            Height="30"
+                            VerticalAlignment="Bottom"
+                            Command="{Binding RegistrarEventoCommand}" />
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="Historial de evidencias">
+                <DataGrid ItemsSource="{Binding Evidencias}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          Height="150"
+                          Margin="15">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Fecha"
+                                            Binding="{Binding FechaProcesamiento,
+                                                              StringFormat=g}"
+                                            Width="150" />
+                        <DataGridTextColumn Header="Fuente"
+                                            Binding="{Binding Fuente}"
+                                            Width="140" />
+                        <DataGridTextColumn Header="Estado Hacienda"
+                                            Binding="{Binding EstadoHacienda}"
+                                            Width="150" />
+                        <DataGridTextColumn Header="Sello"
+                                            Binding="{Binding SelloRecibido}"
+                                            Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
