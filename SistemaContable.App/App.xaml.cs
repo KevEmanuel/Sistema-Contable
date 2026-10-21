@@ -3,6 +3,8 @@ using System.Data;
 using System.Windows;
 //refencia  alas namespace del la cada clase
 using SistemaContableDTE.Data;
+using SistemaContableDTE.Services;
+using SistemaContableDTE.Views;
 
 
 namespace SistemaContable.App;
@@ -12,13 +14,18 @@ namespace SistemaContable.App;
 /// </summary>
 public partial class App : Application
 {
-
     //Inicializacon de la base de datos, cada ves que se inicia la aplicación
-
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         InicializadorBaseDatos.Inicializar();
+
+        //inicializacion del login 
+        //o iniciar una pantalla de configuración
+
+        var ventanaPrincipal = new MainWindow();
+        ventanaPrincipal.Content = ServicioConfiguracionInicial.EstaConfigurada()? new LoginView() : new ConfiguracionInicialView();
+        ventanaPrincipal.Show();
     }
 }
 
