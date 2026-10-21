@@ -1,0 +1,98 @@
+<UserControl x:Class="SistemaContableDTE.Views.CargaDteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
+
+    <UserControl.DataContext>
+        <vm:CargaDteViewModel/>
+    </UserControl.DataContext>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+            <TextBlock Text="Carga de Documentos Tributarios Electrónicos"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+            <Button Content="Volver al panel"
+                    Width="170"
+                    Height="32"
+                    HorizontalAlignment="Right"
+                    Click="VolverAlPanelPrincipal_Click"/>
+        </Grid>
+
+        <GroupBox Grid.Row="1"
+                  Header="Importar archivo JSON"
+                  Margin="0,0,0,15">
+            <Grid Margin="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="{Binding ArchivoSeleccionado}"
+                           VerticalAlignment="Center"
+                           Foreground="DimGray"
+                           TextTrimming="CharacterEllipsis"/>
+
+                <Button Grid.Column="1"
+                        Content="Seleccionar JSON"
+                        Height="30"
+                        Margin="12,0"
+                        Click="SeleccionarArchivo_Click"/>
+
+                <Button Grid.Column="2"
+                        Content="Actualizar lista"
+                        Height="30"
+                        Command="{Binding CargarCommand}"/>
+            </Grid>
+        </GroupBox>
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding Mensaje}"
+                   Foreground="DarkRed"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,10"/>
+
+        <DataGrid Grid.Row="3"
+                  ItemsSource="{Binding Documentos}"
+                  SelectedItem="{Binding DocumentoSeleccionado,
+                                         Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Fecha"
+                                    Binding="{Binding FechaEmision,
+                                                      StringFormat=d}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Tipo DTE"
+                                    Binding="{Binding TipoDte}"
+                                    Width="90"/>
+                <DataGridTextColumn Header="Código de generación"
+                                    Binding="{Binding CodigoGeneracion}"
+                                    Width="*"/>
+                <DataGridTextColumn Header="Número de control"
+                                    Binding="{Binding NumeroControl}"
+                                    Width="180"/>
+                <DataGridTextColumn Header="Rol empresa"
+                                    Binding="{Binding RolEmpresa}"
+                                    Width="130"/>
+                <DataGridTextColumn Header="Estado"
+                                    Binding="{Binding Estado}"
+                                    Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>
