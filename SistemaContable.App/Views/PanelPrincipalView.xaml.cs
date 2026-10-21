@@ -45,12 +45,36 @@ public partial class PanelPrincipalView : UserControl
     private void AbrirCargaDte_Click(
     object sender,
     RoutedEventArgs e)
-{
-    if (Application.Current.MainWindow is not null)
     {
-        Application.Current.MainWindow.Content =
-            new CargaDteView();
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new CargaDteView();
+        }
     }
-}
+
+    //modulo de control de IVA 05
+    private void AbrirValidacionFiscal_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new ValidacionFiscalView();
+        }
+    }
+    //05
+    private void AbrirLibroIva_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new LibroIvaView();
+        }
+    }
+
 
 }

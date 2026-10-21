@@ -131,6 +131,20 @@
                         HorizontalAlignment="Left"
                         Margin="0,10,0,0"
                         Click="AbrirCargaDte_Click"/>
+
+                <Button Content="Validación fiscal de DTE"
+                        Width="230"
+                        Height="35"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,0"
+                        Click="AbrirValidacionFiscal_Click"/>
+
+                <Button Content="Generar Libro IVA"
+                        Width="230"
+                        Height="35"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,0"
+                        Click="AbrirLibroIva_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>
