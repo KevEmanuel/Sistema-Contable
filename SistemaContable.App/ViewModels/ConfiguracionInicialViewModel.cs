@@ -58,10 +58,10 @@ public class ConfiguracionInicialViewModel : ViewModelBase
         NombrePeriodo = $"Ejercicio {anioActual}";
         FechaInicioPeriodo = new DateTime(anioActual, 1, 1);
         FechaFinPeriodo = new DateTime(anioActual, 12, 31);
-        guardarCommand = new RelayCommand(
-            Guardar,
-            _ => !ConfiguracionRealizada);
-
+        /*guardarCommand = new RelayCommand(Guardar,_ => !ConfiguracionRealizada);
+            */
+        guardarCommand = new RelayCommand(Guardar, _ => !ConfiguracionRealizada);
+        
         if (ServicioConfiguracionInicial.EstaConfigurada())
         {
             ConfiguracionRealizada = true;

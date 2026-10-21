@@ -1,6 +1,7 @@
 # Compilación .NET
 bin/
 obj/
+*_wpftmp.csproj
 
 # Configuración de Visual Studio / VS Code
 .vs/
