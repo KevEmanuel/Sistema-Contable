@@ -119,6 +119,12 @@
                         HorizontalAlignment="Left"
                         Margin="0,10,0,0"
                         Click="AbrirReglasContables_Click"/>
+                <Button Content="Registrar partida manual"
+                        Width="230"
+                        Height="35"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,0"
+                        Click="AbrirPartidasContables_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

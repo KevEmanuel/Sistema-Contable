@@ -13,21 +13,33 @@ public partial class PanelPrincipalView : UserControl
     //modulo para generar la regla contable
     private void AbrirCatalogoCuentas_Click(object sender, RoutedEventArgs e)
     {
-        if(Application.Current.MainWindow is not null)
+        if (Application.Current.MainWindow is not null)
         {
             Application.Current.MainWindow.Content = new CatalogoCuentasView();
         }
-    
+
     }
     //mododulo de habilitar las reglas contables
     private void AbrirReglasContables_Click(
     object sender,
     RoutedEventArgs e)
-{
-    if (Application.Current.MainWindow is not null)
     {
-        Application.Current.MainWindow.Content =
-            new ReglasContablesView();
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new ReglasContablesView();
+        }
     }
-}
+    //modulo para partidas manuales
+    private void AbrirPartidasContables_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new PartidasContablesView();
+        }
+    }
+
 }
