@@ -76,5 +76,16 @@ public partial class PanelPrincipalView : UserControl
         }
     }
 
+    //06 contabilizacion automatica
+    private void AbrirContabilizacionAutomatica_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new ContabilizacionAutomaticaView();
+        }
+    }
 
 }

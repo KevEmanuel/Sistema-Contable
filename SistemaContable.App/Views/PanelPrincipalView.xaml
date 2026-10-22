@@ -145,6 +145,12 @@
                         HorizontalAlignment="Left"
                         Margin="0,10,0,0"
                         Click="AbrirLibroIva_Click"/>
+                <Button Content="Contabilizar DTE automáticamente"
+                        Width="230"
+                        Height="35"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,0"
+                        Click="AbrirContabilizacionAutomatica_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>
