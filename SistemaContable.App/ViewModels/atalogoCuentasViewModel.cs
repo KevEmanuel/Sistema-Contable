@@ -1,5 +1,6 @@
 /*using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using SistemaContableDTE.Models;
 using SistemaContableDTE.Services;
@@ -140,6 +141,7 @@ public class CatalogoCuentasViewModel : ViewModelBase
 }*/
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using SistemaContableDTE.Models;
 using SistemaContableDTE.Services;
@@ -151,6 +153,7 @@ public class CatalogoCuentasViewModel : ViewModelBase
     private readonly RelayCommand guardarCommand;
     private readonly RelayCommand actualizarCommand;
     private readonly RelayCommand cambiarEstadoCommand;
+    private readonly RelayCommand eliminarCommand;
     private readonly RelayCommand cargarCommand;
 
     private string codigo = string.Empty;
@@ -237,6 +240,7 @@ public class CatalogoCuentasViewModel : ViewModelBase
     public ICommand GuardarCommand => guardarCommand;
     public ICommand ActualizarCommand => actualizarCommand;
     public ICommand CambiarEstadoCommand => cambiarEstadoCommand;
+    public ICommand EliminarCommand => eliminarCommand;
     public ICommand CargarCommand => cargarCommand;
 
     public CatalogoCuentasViewModel()
@@ -244,6 +248,7 @@ public class CatalogoCuentasViewModel : ViewModelBase
         guardarCommand = new RelayCommand(Guardar);
         actualizarCommand = new RelayCommand(Actualizar);
         cambiarEstadoCommand = new RelayCommand(CambiarEstado);
+        eliminarCommand = new RelayCommand(Eliminar);
         cargarCommand = new RelayCommand(_ => CargarCuentas());
 
         CargarCuentas();
@@ -361,6 +366,41 @@ public class CatalogoCuentasViewModel : ViewModelBase
             LimpiarFormulario();
 
             Mensaje = "Estado de la cuenta actualizado.";
+        }
+        catch (System.Exception error)
+        {
+            Mensaje = error.Message;
+        }
+    }
+
+    private void Eliminar(object? parametro)
+    {
+        if (SesionActual.EmpresaId is null ||
+            CuentaSeleccionada is null)
+        {
+            Mensaje = "Seleccione una cuenta para eliminar.";
+            return;
+        }
+
+        MessageBoxResult confirmacion = MessageBox.Show(
+            $"¿Deseas eliminar la cuenta {CuentaSeleccionada.Codigo} - {CuentaSeleccionada.Nombre}?",
+            "Confirmar eliminación",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+        if (confirmacion != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            ServicioCatalogoCuentas.Eliminar(
+                SesionActual.EmpresaId.Value,
+                CuentaSeleccionada.CuentaContableId);
+            CargarCuentas();
+            LimpiarFormulario();
+            Mensaje = "Cuenta eliminada correctamente.";
         }
         catch (System.Exception error)
         {

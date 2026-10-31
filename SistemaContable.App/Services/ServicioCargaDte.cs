@@ -28,9 +28,88 @@ public static class ServicioCargaDte
             .ToList();
     }
 
-    public static DocumentoDte ImportarArchivo(
+    public static void Eliminar(
         int empresaId,
-        string rutaArchivo)
+        int documentoDteId,
+        int? usuarioId = null)
+    {
+        using var contexto = new ContabilidadDbContext();
+        using var transaccion = contexto.Database.BeginTransaction();
+
+        DocumentoDte? documento = contexto.DocumentosDte
+            .SingleOrDefault(item =>
+                item.DocumentoDteId == documentoDteId &&
+                item.EmpresaId == empresaId);
+
+        if (documento is null)
+        {
+            throw new InvalidOperationException(
+                "No se encontró el DTE seleccionado.");
+        }
+
+        bool tieneDependencias =
+            documento.Estado == EstadoDocumentoDte.Contabilizado ||
+            contexto.EvidenciasFiscales.Any(item =>
+                item.DocumentoDteId == documentoDteId) ||
+            contexto.EventosDte.Any(item =>
+                item.DocumentoDteId == documentoDteId) ||
+            contexto.RegistrosLibroIva.Any(item =>
+                item.DocumentoDteId == documentoDteId) ||
+            contexto.PartidasContables.Any(item =>
+                item.DocumentoDteId == documentoDteId) ||
+            contexto.DteReferencias.Any(item =>
+                item.DocumentoDteOrigenId == documentoDteId ||
+                item.DocumentoDteReferenciadoId == documentoDteId);
+
+        if (tieneDependencias)
+        {
+            throw new InvalidOperationException(
+                "No se puede eliminar este DTE porque conserva evidencias o eventos, o ya está relacionado con registros fiscales o partidas contables.");
+        }
+
+        contexto.DetallesDte.RemoveRange(contexto.DetallesDte.Where(item =>
+            item.DocumentoDteId == documentoDteId));
+        contexto.DteParticipantes.RemoveRange(
+            contexto.DteParticipantes.Where(item =>
+                item.DocumentoDteId == documentoDteId));
+        contexto.ArchivosDte.RemoveRange(contexto.ArchivosDte.Where(item =>
+            item.DocumentoDteId == documentoDteId));
+        contexto.ResultadosValidacionDte.RemoveRange(
+            contexto.ResultadosValidacionDte.Where(item =>
+                item.DocumentoDteId == documentoDteId));
+
+        ResumenTributario? resumen = contexto.ResumenesTributarios
+            .SingleOrDefault(item => item.DocumentoDteId == documentoDteId);
+        if (resumen is not null)
+        {
+            contexto.ResumenesTributarios.Remove(resumen);
+        }
+
+        contexto.DocumentosDte.Remove(documento);
+        contexto.SaveChanges();
+
+        contexto.BitacorasAuditoria.Add(new BitacoraAuditoria
+        {
+            EmpresaId = empresaId,
+            UsuarioId = usuarioId,
+            Entidad = nameof(DocumentoDte),
+            IdEntidad = documentoDteId.ToString(),
+            Accion = "Eliminar DTE sin actividad asociada",
+            ValoresAnteriores = JsonSerializer.Serialize(new
+            {
+                documento.CodigoGeneracion,
+                documento.NumeroControl,
+                documento.TipoDte
+            }),
+            FechaHora = DateTime.Now
+        });
+        contexto.SaveChanges();
+        transaccion.Commit();
+    }
+
+    /* modificaiones :
+    public static DocumentoDte ImportarArchivo(int empresaId,string empresaId,string jsonOriginal,int? usuarioId =null,
+       string rutaArchivo)
     {
         if (!File.Exists(rutaArchivo))
         {
@@ -42,10 +121,31 @@ public static class ServicioCargaDte
 
         return ImportarJson(empresaId, jsonOriginal);
     }
+    */
+    public static DocumentoDte ImportarArchivo(
+    int empresaId,
+    string rutaArchivo,
+    int? usuarioId = null)
+    {
+        if (!File.Exists(rutaArchivo))
+        {
+            throw new FileNotFoundException(
+                "No se encontró el archivo JSON seleccionado.");
+        }
 
+        string jsonOriginal = File.ReadAllText(rutaArchivo);
+
+        return ImportarJson(empresaId, jsonOriginal, usuarioId);
+    }
+    /*cambios
     public static DocumentoDte ImportarJson(
-        int empresaId,
-        string jsonOriginal)
+    int empresaId,
+    string jsonOriginal)
+    */
+    public static DocumentoDte ImportarJson(
+    int empresaId,
+    string jsonOriginal,
+    int? usuarioId = null)
     {
         if (string.IsNullOrWhiteSpace(jsonOriginal))
         {
@@ -163,6 +263,11 @@ public static class ServicioCargaDte
         JsonElement cuerpoDocumento = ObtenerArreglo(
             raiz,
             "cuerpoDocumento");
+        JsonElement resumen = ObtenerSeccion(raiz, "resumen");
+
+        documentoNuevo.ResumenTributario = CrearResumenTributario(
+            documentoNuevo,
+            resumen);
 
         int orden = 1;
 
@@ -175,6 +280,7 @@ public static class ServicioCargaDte
                 DocumentoDte = documentoNuevo,
                 NumeroItem = numeroItem == 0 ? orden : numeroItem,
                 TipoItem = LeerEnteroOpcional(item, "tipoItem"),
+                Codigo = LeerTexto(item, "codigo"),
                 Cantidad = LeerDecimal(item, "cantidad"),
                 Descripcion = LeerTextoRequerido(item, "descripcion"),
                 PrecioUnitario = LeerDecimal(item, "precioUni"),
@@ -196,10 +302,60 @@ public static class ServicioCargaDte
             FechaCarga = DateTime.Now
         });
 
+        /*
         contexto.SaveChanges();
         transaccion.Commit();
 
         return documentoNuevo;
+        /cambios realizado para la importacion de json
+        */
+        contexto.SaveChanges();
+
+        string valoresNuevos = JsonSerializer.Serialize(new
+        {
+            documentoNuevo.CodigoGeneracion,
+            documentoNuevo.NumeroControl,
+            documentoNuevo.TipoDte,
+            FechaEmision = documentoNuevo.FechaEmision,
+            RolEmpresa = documentoNuevo.RolEmpresa.ToString(),
+            CantidadItems = orden - 1,
+            HashSha256 = hashSha256
+        });
+
+        contexto.BitacorasAuditoria.Add(new BitacoraAuditoria
+        {
+            EmpresaId = empresaId,
+            UsuarioId = usuarioId,
+            Entidad = "DocumentoDte",
+            IdEntidad = documentoNuevo.DocumentoDteId.ToString(),
+            Accion = "Importar DTE",
+            ValoresNuevos = valoresNuevos,
+            FechaHora = DateTime.Now
+        });
+
+        contexto.SaveChanges();
+        transaccion.Commit();
+
+        return documentoNuevo;
+    }
+
+    private static ResumenTributario CrearResumenTributario(
+        DocumentoDte documento,
+        JsonElement resumen)
+    {
+        return new ResumenTributario
+        {
+            DocumentoDte = documento,
+            TotalGravada = LeerDecimalOpcional(resumen, "totalGravada"),
+            TotalExenta = LeerDecimalOpcional(resumen, "totalExenta"),
+            TotalNoSujeta = LeerDecimalOpcional(resumen, "totalNoSuj"),
+            TotalIva = LeerDecimalOpcional(resumen, "totalIva"),
+            MontoTotalOperacion = LeerDecimalOpcional(
+                resumen,
+                "montoTotalOperacion"),
+            TotalPagar = LeerDecimalOpcional(resumen, "totalPagar"),
+            JsonOriginal = resumen.GetRawText()
+        };
     }
 
     private static RolEmpresaDte DeterminarRolEmpresa(
@@ -392,6 +548,36 @@ public static class ServicioCargaDte
         }
 
         return 0;
+    }
+
+    private static decimal? LeerDecimalOpcional(
+        JsonElement objeto,
+        string nombre)
+    {
+        if (!objeto.TryGetProperty(nombre, out JsonElement valor) ||
+            valor.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return null;
+        }
+
+        if (valor.ValueKind is not (JsonValueKind.Number or JsonValueKind.String))
+        {
+            throw new ArgumentException(
+                $"El campo '{nombre}' del resumen no contiene un importe válido.");
+        }
+
+        string texto = valor.ToString();
+        if (decimal.TryParse(
+                texto,
+                NumberStyles.Number | NumberStyles.AllowExponent,
+                CultureInfo.InvariantCulture,
+                out decimal resultado))
+        {
+            return resultado;
+        }
+
+        throw new ArgumentException(
+            $"El campo '{nombre}' del resumen no contiene un importe válido.");
     }
 
     private static DateTime LeerFecha(

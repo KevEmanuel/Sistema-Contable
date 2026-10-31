@@ -23,6 +23,8 @@ public class ContabilidadDbContext : DbContext
     public DbSet<ArchivoDte> ArchivosDte { get; set; } = null!;
     public DbSet<EvidenciaFiscal> EvidenciasFiscales { get; set; } = null!;
     public DbSet<DetalleDTe> DetallesDte { get; set; } = null!;
+    public DbSet<ResumenTributario> ResumenesTributarios { get; set; } = null!;
+    public DbSet<ResultadoValidacionDte> ResultadosValidacionDte { get; set; } = null!;
     public DbSet<EventoDte> EventosDte { get; set; } = null!;
     public DbSet<DteReferencia> DteReferencias { get; set; } = null!;
 
@@ -91,6 +93,14 @@ public class ContabilidadDbContext : DbContext
             .Property(x => x.Fuente)
             .HasConversion<string>();
 
+        modelBuilder.Entity<ResultadoValidacionDte>()
+            .Property(x => x.TipoValidacion)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ResultadoValidacionDte>()
+            .Property(x => x.Resultado)
+            .HasConversion<string>();
+
         //cambios recientes
         modelBuilder.Entity<ReglaContable>()
     .Property(x => x.RolEmpresa)
@@ -120,6 +130,30 @@ public class ContabilidadDbContext : DbContext
         // Importes monetarios.
         modelBuilder.Entity<DetalleDTe>()
             .Property(x => x.PrecioUnitario)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ResumenTributario>()
+            .Property(x => x.TotalGravada)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ResumenTributario>()
+            .Property(x => x.TotalExenta)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ResumenTributario>()
+            .Property(x => x.TotalNoSujeta)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ResumenTributario>()
+            .Property(x => x.TotalIva)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ResumenTributario>()
+            .Property(x => x.MontoTotalOperacion)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ResumenTributario>()
+            .Property(x => x.TotalPagar)
             .HasPrecision(18, 2);
 
         modelBuilder.Entity<DetallePartida>()
@@ -175,6 +209,24 @@ public class ContabilidadDbContext : DbContext
             .WithMany(x => x.Participantes)
             .HasForeignKey(x => x.DocumentoDteId);
 
+        modelBuilder.Entity<ResumenTributario>()
+            .HasOne(x => x.DocumentoDte)
+            .WithOne(x => x.ResumenTributario)
+            .HasForeignKey<ResumenTributario>(x => x.DocumentoDteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ResultadoValidacionDte>()
+            .HasOne(x => x.DocumentoDte)
+            .WithMany(x => x.ResultadosValidacion)
+            .HasForeignKey(x => x.DocumentoDteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ResultadoValidacionDte>()
+            .HasOne(x => x.Usuario)
+            .WithMany()
+            .HasForeignKey(x => x.UsuarioId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Dos relaciones distintas entre referencias y DTE.
         modelBuilder.Entity<DteReferencia>()
             .HasOne(x => x.DocumentoDteOrigen)
@@ -220,6 +272,10 @@ public class ContabilidadDbContext : DbContext
 
         modelBuilder.Entity<DetalleDTe>()
             .HasIndex(x => new { x.DocumentoDteId, x.NumeroItem })
+            .IsUnique();
+
+        modelBuilder.Entity<ResumenTributario>()
+            .HasIndex(x => x.DocumentoDteId)
             .IsUnique();
 
         modelBuilder.Entity<PartidaContable>()

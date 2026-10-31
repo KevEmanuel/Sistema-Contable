@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using SistemaContableDTE.Models;
 using SistemaContableDTE.Services;
@@ -14,8 +15,14 @@ public class ValidacionFiscalViewModel : ViewModelBase
     private readonly RelayCommand registrarEvidenciaCommand;
     private readonly RelayCommand registrarEventoCommand;
     private readonly RelayCommand cargarCommand;
+    private readonly RelayCommand actualizarEvidenciaCommand;
+    private readonly RelayCommand eliminarEvidenciaCommand;
+    private readonly RelayCommand actualizarEventoCommand;
+    private readonly RelayCommand eliminarEventoCommand;
 
     private DocumentoDte? documentoSeleccionado;
+    private EvidenciaFiscal? evidenciaSeleccionada;
+    private EventoDte? eventoSeleccionado;
 
     private FuenteEvidenciaFiscal fuenteSeleccionada;
     private EstadoDocumentoDte estadoDocumentoSeleccionado;
@@ -43,11 +50,16 @@ public class ValidacionFiscalViewModel : ViewModelBase
 
     public ObservableCollection<EventoDte> Eventos { get; } = new();
 
+    public ObservableCollection<ResultadoValidacionDte> ResultadosValidacion { get; } =
+        new();
+
     public List<FuenteEvidenciaFiscal> FuentesEvidencia { get; } =
         Enum.GetValues<FuenteEvidenciaFiscal>().ToList();
 
     public List<EstadoDocumentoDte> EstadosDocumento { get; } =
-        Enum.GetValues<EstadoDocumentoDte>().ToList();
+        Enum.GetValues<EstadoDocumentoDte>()
+            .Where(estado => estado != EstadoDocumentoDte.Contabilizado)
+            .ToList();
 
     public DocumentoDte? DocumentoSeleccionado
     {
@@ -57,6 +69,45 @@ public class ValidacionFiscalViewModel : ViewModelBase
             if (EstablecerPropiedad(ref documentoSeleccionado, value))
             {
                 CargarHistorial();
+            }
+        }
+    }
+
+    public EvidenciaFiscal? EvidenciaSeleccionada
+    {
+        get => evidenciaSeleccionada;
+        set
+        {
+            if (EstablecerPropiedad(ref evidenciaSeleccionada, value) &&
+                value is not null)
+            {
+                FuenteSeleccionada = value.Fuente;
+                SelloRecibido = value.SelloRecibido;
+                EstadoHacienda = value.EstadoHacienda;
+                FechaProcesamiento = value.FechaProcesamiento;
+                CodigoMensaje = value.CodigoMensaje;
+                DescripcionMensaje = value.DescripcionMensaje;
+                Observaciones = value.Observaciones;
+                RespuestaJson = value.RespuestaJson;
+                Mensaje = "Evidencia seleccionada. Corrige los datos y pulsa Actualizar evidencia.";
+            }
+        }
+    }
+
+    public EventoDte? EventoSeleccionado
+    {
+        get => eventoSeleccionado;
+        set
+        {
+            if (EstablecerPropiedad(ref eventoSeleccionado, value) &&
+                value is not null)
+            {
+                TipoEvento = value.TipoEvento;
+                EstadoEvento = value.EstadoEvento;
+                FechaEvento = value.FechaEvento;
+                SelloEvento = value.SelloRecibido;
+                DetalleEventoJson = value.DetalleJson;
+                Mensaje = "Evento seleccionado. Corrige los datos y pulsa Actualizar evento.";
             }
         }
     }
@@ -160,6 +211,12 @@ public class ValidacionFiscalViewModel : ViewModelBase
         registrarEventoCommand;
 
     public ICommand CargarCommand => cargarCommand;
+    public ICommand ActualizarEvidenciaCommand =>
+        actualizarEvidenciaCommand;
+    public ICommand EliminarEvidenciaCommand =>
+        eliminarEvidenciaCommand;
+    public ICommand ActualizarEventoCommand => actualizarEventoCommand;
+    public ICommand EliminarEventoCommand => eliminarEventoCommand;
 
     public ValidacionFiscalViewModel()
     {
@@ -174,6 +231,11 @@ public class ValidacionFiscalViewModel : ViewModelBase
             new RelayCommand(RegistrarEvento);
 
         cargarCommand = new RelayCommand(_ => CargarDocumentos());
+        actualizarEvidenciaCommand =
+            new RelayCommand(ActualizarEvidencia);
+        eliminarEvidenciaCommand = new RelayCommand(EliminarEvidencia);
+        actualizarEventoCommand = new RelayCommand(ActualizarEvento);
+        eliminarEventoCommand = new RelayCommand(EliminarEvento);
 
         CargarDocumentos();
     }
@@ -197,13 +259,17 @@ public class ValidacionFiscalViewModel : ViewModelBase
 
         Evidencias.Clear();
         Eventos.Clear();
+        ResultadosValidacion.Clear();
         DocumentoSeleccionado = null;
     }
 
     private void CargarHistorial()
     {
+        EvidenciaSeleccionada = null;
+        EventoSeleccionado = null;
         Evidencias.Clear();
         Eventos.Clear();
+        ResultadosValidacion.Clear();
 
         if (DocumentoSeleccionado is null)
         {
@@ -223,6 +289,13 @@ public class ValidacionFiscalViewModel : ViewModelBase
         {
             Eventos.Add(evento);
         }
+
+        foreach (ResultadoValidacionDte resultado in
+                 ServicioValidacionFiscal.ObtenerResultadosValidacion(
+                     DocumentoSeleccionado.DocumentoDteId))
+        {
+            ResultadosValidacion.Add(resultado);
+        }
     }
 
     private void RegistrarEvidencia(object? parametro)
@@ -236,7 +309,9 @@ public class ValidacionFiscalViewModel : ViewModelBase
 
         try
         {
-            ServicioValidacionFiscal.RegistrarEvidencia(
+            int documentoId = DocumentoSeleccionado.DocumentoDteId;
+            List<ResultadoValidacionDte> resultados =
+                ServicioValidacionFiscal.RegistrarEvidencia(
                 SesionActual.EmpresaId.Value,
                 DocumentoSeleccionado.DocumentoDteId,
                 FuenteSeleccionada,
@@ -247,9 +322,16 @@ public class ValidacionFiscalViewModel : ViewModelBase
                 DescripcionMensaje,
                 Observaciones,
                 RespuestaJson,
-                EstadoDocumentoSeleccionado);
+                EstadoDocumentoSeleccionado,
+                SesionActual.Usuario?.UsuarioId);
 
-            Mensaje = "Evidencia fiscal registrada correctamente.";
+            bool resultadoAprobado = resultados.All(resultado =>
+                resultado.Resultado == EstadoResultadoValidacionDte.Valida);
+
+            Mensaje = EstadoDocumentoSeleccionado == EstadoDocumentoDte.Validado &&
+                      !resultadoAprobado
+                ? "Evidencia guardada, pero el DTE no se validó. Revisa los resultados registrados."
+                : "Evidencia y resultados de validación registrados correctamente.";
 
             SelloRecibido = null;
             EstadoHacienda = null;
@@ -258,8 +340,9 @@ public class ValidacionFiscalViewModel : ViewModelBase
             Observaciones = null;
             RespuestaJson = null;
 
-            CargarHistorial();
             CargarDocumentos();
+            DocumentoSeleccionado = Documentos.SingleOrDefault(documento =>
+                documento.DocumentoDteId == documentoId);
         }
         catch (Exception error)
         {
@@ -295,6 +378,140 @@ public class ValidacionFiscalViewModel : ViewModelBase
             DetalleEventoJson = null;
 
             CargarHistorial();
+        }
+        catch (Exception error)
+        {
+            Mensaje = error.Message;
+        }
+    }
+
+    private void ActualizarEvidencia(object? parametro)
+    {
+        if (SesionActual.EmpresaId is null ||
+            EvidenciaSeleccionada is null)
+        {
+            Mensaje = "Selecciona una evidencia para actualizar.";
+            return;
+        }
+
+        try
+        {
+            ServicioValidacionFiscal.ActualizarEvidencia(
+                SesionActual.EmpresaId.Value,
+                EvidenciaSeleccionada.EvidenciaFiscalId,
+                FuenteSeleccionada,
+                SelloRecibido,
+                EstadoHacienda,
+                FechaProcesamiento,
+                CodigoMensaje,
+                DescripcionMensaje,
+                Observaciones,
+                RespuestaJson,
+                SesionActual.Usuario?.UsuarioId);
+
+            Mensaje = "Evidencia actualizada y DTE validado nuevamente.";
+            EvidenciaSeleccionada = null;
+            CargarHistorial();
+        }
+        catch (Exception error)
+        {
+            Mensaje = error.Message;
+        }
+    }
+
+    private void EliminarEvidencia(object? parametro)
+    {
+        if (SesionActual.EmpresaId is null ||
+            EvidenciaSeleccionada is null)
+        {
+            Mensaje = "Selecciona una evidencia para eliminar.";
+            return;
+        }
+
+        MessageBoxResult confirmacion = MessageBox.Show(
+            "Se eliminará esta evidencia. El DTE se validará con la evidencia restante y se conservará el historial de resultados anteriores. ¿Deseas continuar?",
+            "Confirmar eliminación",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+        if (confirmacion != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            ServicioValidacionFiscal.EliminarEvidencia(
+                SesionActual.EmpresaId.Value,
+                EvidenciaSeleccionada.EvidenciaFiscalId,
+                SesionActual.Usuario?.UsuarioId);
+            EvidenciaSeleccionada = null;
+            CargarHistorial();
+            Mensaje = "Evidencia eliminada y DTE actualizado.";
+        }
+        catch (Exception error)
+        {
+            Mensaje = error.Message;
+        }
+    }
+
+    private void ActualizarEvento(object? parametro)
+    {
+        if (SesionActual.EmpresaId is null ||
+            EventoSeleccionado is null)
+        {
+            Mensaje = "Selecciona un evento para actualizar.";
+            return;
+        }
+
+        try
+        {
+            ServicioValidacionFiscal.ActualizarEvento(
+                SesionActual.EmpresaId.Value,
+                EventoSeleccionado.EventoDteId,
+                TipoEvento,
+                EstadoEvento,
+                FechaEvento,
+                SelloEvento,
+                DetalleEventoJson);
+            EventoSeleccionado = null;
+            CargarHistorial();
+            Mensaje = "Evento actualizado correctamente.";
+        }
+        catch (Exception error)
+        {
+            Mensaje = error.Message;
+        }
+    }
+
+    private void EliminarEvento(object? parametro)
+    {
+        if (SesionActual.EmpresaId is null ||
+            EventoSeleccionado is null)
+        {
+            Mensaje = "Selecciona un evento para eliminar.";
+            return;
+        }
+
+        MessageBoxResult confirmacion = MessageBox.Show(
+            "¿Deseas eliminar el evento seleccionado?",
+            "Confirmar eliminación",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+        if (confirmacion != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            ServicioValidacionFiscal.EliminarEvento(
+                SesionActual.EmpresaId.Value,
+                EventoSeleccionado.EventoDteId);
+            EventoSeleccionado = null;
+            CargarHistorial();
+            Mensaje = "Evento eliminado correctamente.";
         }
         catch (Exception error)
         {

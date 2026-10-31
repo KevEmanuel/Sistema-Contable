@@ -30,6 +30,16 @@ public partial class PanelPrincipalView : UserControl
                 new ReglasContablesView();
         }
     }
+    private void AbrirLibrosContables_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new LibrosContablesView();
+        }
+    }
     //modulo para partidas manuales
     private void AbrirPartidasContables_Click(
     object sender,
@@ -87,5 +97,29 @@ public partial class PanelPrincipalView : UserControl
                 new ContabilizacionAutomaticaView();
         }
     }
+    //contabilidad automatica 07
+    private void AbrirExportacionFiscal_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new ExportacionFiscalView();
+        }
+    }
+
+    //bitacora de gestion de auditorias 
+    private void AbrirBitacoraAuditoria_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is not null)
+        {
+            Application.Current.MainWindow.Content =
+                new BitacoraAuditoriaView();
+        }
+    }
+
 
 }

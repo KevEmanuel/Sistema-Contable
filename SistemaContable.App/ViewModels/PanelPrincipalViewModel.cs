@@ -8,5 +8,5 @@ public class PanelPrincipalViewModel : ViewModelBase
 
     public string CorreoUsuario => SesionActual.Usuario?.Correo?? string.Empty;
 
-    public string MesajeBienvenida => $"Bienvendo, {NombreUsuario}.";
+    public string MensajeBienvenida => $"Bienvenido, {NombreUsuario}.";
 }

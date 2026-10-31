@@ -28,21 +28,54 @@ public static class ServicioContabilizacionAutomatica
 
     public static List<ReglaContable> ObtenerReglasVigentes(
         int empresaId,
-        DateTime fecha)
+        DocumentoDte documento)
     {
         using var contexto = new ContabilidadDbContext();
 
-        return contexto.ReglasContables
+        List<ReglaContable> reglas = contexto.ReglasContables
             .AsNoTracking()
             .Include(regla => regla.Cuentas)
             .ThenInclude(linea => linea.CuentaContable)
             .Where(regla =>
                 regla.EmpresaId == empresaId &&
                 regla.Activa &&
-                regla.VigenciDesde <= fecha &&
+                regla.VigenciDesde <= documento.FechaEmision &&
                 (!regla.VigenciaHasta.HasValue ||
-                 regla.VigenciaHasta.Value >= fecha))
+                 regla.VigenciaHasta.Value >= documento.FechaEmision))
             .OrderBy(regla => regla.Nombre)
+            .ToList();
+
+        reglas = reglas
+            .Where(regla =>
+                (string.IsNullOrWhiteSpace(regla.TipoDte) ||
+                 string.Equals(
+                     regla.TipoDte.Trim(),
+                     documento.TipoDte.Trim(),
+                     StringComparison.OrdinalIgnoreCase)) &&
+                (!regla.RolEmpresa.HasValue ||
+                 regla.RolEmpresa.Value == RolEmpresaDte.NoDeterminado ||
+                 regla.RolEmpresa.Value == documento.RolEmpresa))
+            .ToList();
+
+        if (reglas.Count == 0)
+        {
+            return reglas;
+        }
+
+        bool requiereEvaluacion = reglas.Any(regla =>
+            !string.Equals(
+                regla.CondicionJson?.Trim(),
+                "{}",
+                StringComparison.Ordinal));
+        Dictionary<string, decimal> valores = requiereEvaluacion
+            ? ObtenerValoresDte(contexto, documento.DocumentoDteId)
+            : new Dictionary<string, decimal>();
+
+        return reglas
+            .Where(regla =>
+                ServicioCondicionesReglaContable.CumpleCondiciones(
+                    regla.CondicionJson,
+                    valores))
             .ToList();
     }
 
@@ -108,8 +141,19 @@ public static class ServicioContabilizacionAutomatica
                 "La regla contable no está activa.");
         }
 
+        if (regla.VigenciDesde.Date > documento.FechaEmision.Date ||
+            (regla.VigenciaHasta.HasValue &&
+             regla.VigenciaHasta.Value.Date < documento.FechaEmision.Date))
+        {
+            throw new InvalidOperationException(
+                "La regla no está vigente para la fecha de emisión del DTE.");
+        }
+
         if (!string.IsNullOrWhiteSpace(regla.TipoDte) &&
-            regla.TipoDte != documento.TipoDte)
+            !string.Equals(
+                regla.TipoDte.Trim(),
+                documento.TipoDte.Trim(),
+                StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
                 "La regla no corresponde al tipo de DTE seleccionado.");
@@ -131,6 +175,14 @@ public static class ServicioContabilizacionAutomatica
 
         Dictionary<string, decimal> valores =
             ObtenerValoresDte(contexto, documentoDteId);
+
+        if (!ServicioCondicionesReglaContable.CumpleCondiciones(
+                regla.CondicionJson,
+                valores))
+        {
+            throw new InvalidOperationException(
+                "El DTE no cumple las condiciones adicionales de la regla seleccionada.");
+        }
 
         var detalles = new List<DetallePartida>();
 

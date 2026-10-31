@@ -64,14 +64,21 @@
                    TextWrapping="Wrap"
                    Margin="0,0,0,10"/>
 
-        <DataGrid Grid.Row="3"
-                  ItemsSource="{Binding Documentos}"
-                  SelectedItem="{Binding DocumentoSeleccionado,
-                                         Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  SelectionMode="Single">
+        <DockPanel Grid.Row="3">
+            <Button DockPanel.Dock="Top"
+                    Content="Eliminar DTE seleccionado"
+                    Width="200"
+                    Height="30"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,0,8"
+                    Command="{Binding EliminarCommand}" />
+            <DataGrid ItemsSource="{Binding Documentos}"
+                      SelectedItem="{Binding DocumentoSeleccionado,
+                                             Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      SelectionMode="Single">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Fecha"
                                     Binding="{Binding FechaEmision,
@@ -93,6 +100,7 @@
                                     Binding="{Binding Estado}"
                                     Width="150"/>
             </DataGrid.Columns>
-        </DataGrid>
+            </DataGrid>
+        </DockPanel>
     </Grid>
 </UserControl>

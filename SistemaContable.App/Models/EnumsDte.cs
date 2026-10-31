@@ -36,3 +36,18 @@ public enum FuenteEvidenciaFiscal
 {
     RespuestaRecepcio,ConsultaPublica, CargarRespaldo
 }
+
+public enum TipoValidacionDte
+{
+    Estructural,
+    Aritmetica,
+    Fiscal,
+    Manual
+}
+
+public enum EstadoResultadoValidacionDte
+{
+    Valida,
+    Invalida,
+    ConAdvertencias
+}

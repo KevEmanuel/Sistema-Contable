@@ -7,6 +7,34 @@
         <vm:PanelPrincipalViewModel/>
     </UserControl.DataContext>
 
+    <UserControl.Resources>
+        <Style x:Key="ModuleCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D0D7DE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,14,0"/>
+        </Style>
+
+        <Style x:Key="ModuleButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Background" Value="#F5F7FA"/>
+            <Setter Property="BorderBrush" Value="#D0D7DE"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8F1F8"/>
+                    <Setter Property="BorderBrush" Value="#1F4E79"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="75"/>
@@ -39,11 +67,11 @@
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="35">
                 <TextBlock Text="{Binding MensajeBienvenida}"
-                           FontSize="26"
+                           FontSize="24"
                            FontWeight="Bold"/>
 
-                <TextBlock Text="Seleccione un módulo para comenzar a trabajar."
-                           Margin="0,8,0,25"
+                <TextBlock Text="Acceda a las tareas disponibles en cada módulo."
+                           Margin="0,8,0,22"
                            Foreground="DimGray"/>
 
                 <Grid>
@@ -53,31 +81,25 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0"
-                            Background="White"
-                            BorderBrush="#D0D7DE"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Margin="0,0,15,0"
-                            Padding="20">
+                    <Border Grid.Column="0" Style="{StaticResource ModuleCardStyle}">
                         <StackPanel>
                             <TextBlock Text="Carga de DTE"
                                        FontSize="18"
                                        FontWeight="Bold"/>
-                            <TextBlock Text="Importar archivos JSON emitidos y recibidos."
+                            <TextBlock Text="Importación y revisión de documentos tributarios."
                                        Margin="0,10,0,0"
                                        TextWrapping="Wrap"
                                        Foreground="DimGray"/>
+                            <Button Content="Importar DTE desde JSON"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirCargaDte_Click"/>
+                            <Button Content="Validar DTE"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirValidacionFiscal_Click"/>
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Column="1"
-                            Background="White"
-                            BorderBrush="#D0D7DE"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Margin="0,0,15,0"
-                            Padding="20">
+                    <Border Grid.Column="1" Style="{StaticResource ModuleCardStyle}">
                         <StackPanel>
                             <TextBlock Text="Contabilidad"
                                        FontSize="18"
@@ -86,71 +108,47 @@
                                        Margin="0,10,0,0"
                                        TextWrapping="Wrap"
                                        Foreground="DimGray"/>
+                            <Button Content="Catálogo de cuentas"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirCatalogoCuentas_Click"/>
+                            <Button Content="Reglas contables"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirReglasContables_Click"/>
+                            <Button Content="Libros Diario y Mayor"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirLibrosContables_Click"/>
+                            <Button Content="Registrar partida manual"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirPartidasContables_Click"/>
+                            <Button Content="Contabilización automática"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirContabilizacionAutomatica_Click"/>
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="2"
-                            Background="White"
-                            BorderBrush="#D0D7DE"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="20">
+                            Style="{StaticResource ModuleCardStyle}"
+                            Margin="0">
                         <StackPanel>
                             <TextBlock Text="Libros fiscales"
                                        FontSize="18"
                                        FontWeight="Bold"/>
-                            <TextBlock Text="Libros de IVA, reportes y exportaciones fiscales."
+                            <TextBlock Text="Libros de IVA, exportaciones y auditoría."
                                        Margin="0,10,0,0"
                                        TextWrapping="Wrap"
                                        Foreground="DimGray"/>
+                            <Button Content="Generar Libro IVA"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirLibroIva_Click"/>
+                            <Button Content="Generar exportación fiscal"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirExportacionFiscal_Click"/>
+                            <Button Content="Bitácora de auditoría"
+                                    Style="{StaticResource ModuleButtonStyle}"
+                                    Click="AbrirBitacoraAuditoria_Click"/>
                         </StackPanel>
                     </Border>
                 </Grid>
-
-                <Button Content="Abrir catálogo de cuentas"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,25,0,0"
-                        Click="AbrirCatalogoCuentas_Click"/>
-                <Button Content="Administrar reglas contables"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,10,0,0"
-                        Click="AbrirReglasContables_Click"/>
-                <Button Content="Registrar partida manual"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,10,0,0"
-                        Click="AbrirPartidasContables_Click"/>
-                <Button Content="Importar DTE JSON"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,10,0,0"
-                        Click="AbrirCargaDte_Click"/>
-
-                <Button Content="Validación fiscal de DTE"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,10,0,0"
-                        Click="AbrirValidacionFiscal_Click"/>
-
-                <Button Content="Generar Libro IVA"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,10,0,0"
-                        Click="AbrirLibroIva_Click"/>
-                <Button Content="Contabilizar DTE automáticamente"
-                        Width="230"
-                        Height="35"
-                        HorizontalAlignment="Left"
-                        Margin="0,10,0,0"
-                        Click="AbrirContabilizacionAutomatica_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

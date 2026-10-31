@@ -123,15 +123,19 @@ public class ContabilizacionAutomaticaViewModel : ViewModelBase
             return;
         }
 
-        foreach (ReglaContable regla in
-                 ServicioContabilizacionAutomatica.ObtenerReglasVigentes(
-                     SesionActual.EmpresaId.Value,
-                     DocumentoSeleccionado.FechaEmision)
-                     .Where(regla =>
-                         string.IsNullOrWhiteSpace(regla.TipoDte) ||
-                         regla.TipoDte == DocumentoSeleccionado.TipoDte))
+        try
         {
-            Reglas.Add(regla);
+            foreach (ReglaContable regla in
+                     ServicioContabilizacionAutomatica.ObtenerReglasVigentes(
+                         SesionActual.EmpresaId.Value,
+                         DocumentoSeleccionado))
+            {
+                Reglas.Add(regla);
+            }
+        }
+        catch (InvalidOperationException error)
+        {
+            Mensaje = error.Message;
         }
     }
 

@@ -1,0 +1,220 @@
+<UserControl x:Class="SistemaContableDTE.Views.LibrosContablesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
+
+    <UserControl.DataContext>
+        <vm:LibrosContablesViewModel />
+    </UserControl.DataContext>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+              Margin="0,0,0,18">
+            <TextBlock Text="Libros contables"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center" />
+
+            <Button Content="Volver al panel"
+                    Width="170"
+                    Height="32"
+                    HorizontalAlignment="Right"
+                    Click="VolverAlPanelPrincipal_Click" />
+        </Grid>
+
+        <GroupBox Grid.Row="1"
+                  Header="Período y fechas"
+                  Margin="0,0,0,12">
+            <Grid Margin="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="130" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Período contable" />
+                    <ComboBox ItemsSource="{Binding Periodos}"
+                              SelectedItem="{Binding PeriodoSeleccionado}"
+                              DisplayMemberPath="Nombre"
+                              Height="28"
+                              Margin="0,5,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Desde" />
+                    <DatePicker SelectedDate="{Binding FechaDesde}"
+                                Height="28"
+                                Margin="0,5,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Hasta" />
+                    <DatePicker SelectedDate="{Binding FechaHasta}"
+                                Height="28"
+                                Margin="0,5,0,0" />
+                </StackPanel>
+
+                <Button Grid.Column="3"
+                        Content="Actualizar"
+                        Height="30"
+                        VerticalAlignment="Bottom"
+                        Command="{Binding CargarCommand}" />
+            </Grid>
+        </GroupBox>
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding Mensaje}"
+                   Foreground="DarkRed"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,10" />
+
+        <TabControl Grid.Row="3">
+            <TabItem Header="Libro Diario">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0"
+                               Margin="0,0,0,8">
+                        <Button Content="Exportar Diario CSV"
+                                Width="160"
+                                Height="30"
+                                HorizontalAlignment="Right"
+                                DockPanel.Dock="Right"
+                                Click="ExportarDiario_Click" />
+                        <TextBlock Text="{Binding TotalDebeDiario,
+                                                  StringFormat='Debe: {0:N2}'}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,18,0" />
+                        <TextBlock Text="{Binding TotalHaberDiario,
+                                                  StringFormat='Haber: {0:N2}'}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding LibroDiario}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Fecha"
+                                                Binding="{Binding Fecha,
+                                                                  StringFormat=d}"
+                                                Width="95" />
+                            <DataGridTextColumn Header="Partida"
+                                                Binding="{Binding NumeroPartida}"
+                                                Width="75" />
+                            <DataGridTextColumn Header="Estado"
+                                                Binding="{Binding EstadoPartida}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="Glosa"
+                                                Binding="{Binding Glosa}"
+                                                Width="2*" />
+                            <DataGridTextColumn Header="Cuenta"
+                                                Binding="{Binding CodigoCuenta}"
+                                                Width="100" />
+                            <DataGridTextColumn Header="Nombre de cuenta"
+                                                Binding="{Binding NombreCuenta}"
+                                                Width="2*" />
+                            <DataGridTextColumn Header="Concepto"
+                                                Binding="{Binding Concepto}"
+                                                Width="2*" />
+                            <DataGridTextColumn Header="Debe"
+                                                Binding="{Binding Debe,
+                                                                  StringFormat=N2}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="Haber"
+                                                Binding="{Binding Haber,
+                                                                  StringFormat=N2}"
+                                                Width="110" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Libro Mayor">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0"
+                               Margin="0,0,0,8">
+                        <Button Content="Exportar Mayor CSV"
+                                Width="160"
+                                Height="30"
+                                HorizontalAlignment="Right"
+                                DockPanel.Dock="Right"
+                                Click="ExportarMayor_Click" />
+                        <TextBlock Text="{Binding TotalDebeMayor,
+                                                  StringFormat='Movimientos Debe: {0:N2}'}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,18,0" />
+                        <TextBlock Text="{Binding TotalHaberMayor,
+                                                  StringFormat='Movimientos Haber: {0:N2}'}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding LibroMayor}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Cuenta"
+                                                Binding="{Binding CodigoCuenta}"
+                                                Width="100" />
+                            <DataGridTextColumn Header="Nombre de cuenta"
+                                                Binding="{Binding NombreCuenta}"
+                                                Width="2*" />
+                            <DataGridTextColumn Header="Fecha"
+                                                Binding="{Binding Fecha,
+                                                                  StringFormat=d}"
+                                                Width="95" />
+                            <DataGridTextColumn Header="Partida"
+                                                Binding="{Binding NumeroPartida}"
+                                                Width="75" />
+                            <DataGridTextColumn Header="Estado"
+                                                Binding="{Binding EstadoPartida}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="Glosa / movimiento"
+                                                Binding="{Binding Glosa}"
+                                                Width="2*" />
+                            <DataGridTextColumn Header="Debe"
+                                                Binding="{Binding Debe,
+                                                                  StringFormat=N2}"
+                                                Width="100" />
+                            <DataGridTextColumn Header="Haber"
+                                                Binding="{Binding Haber,
+                                                                  StringFormat=N2}"
+                                                Width="100" />
+                            <DataGridTextColumn Header="Saldo deudor"
+                                                Binding="{Binding SaldoDeudor,
+                                                                  StringFormat=N2}"
+                                                Width="115" />
+                            <DataGridTextColumn Header="Saldo acreedor"
+                                                Binding="{Binding SaldoAcreedor,
+                                                                  StringFormat=N2}"
+                                                Width="115" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

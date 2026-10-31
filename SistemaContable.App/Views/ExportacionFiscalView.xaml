@@ -1,0 +1,118 @@
+<UserControl x:Class="SistemaContableDTE.Views.ExportacionFiscalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
+
+    <UserControl.DataContext>
+        <vm:ExportacionFiscalViewModel />
+    </UserControl.DataContext>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+            <TextBlock Text="Exportaciones fiscales"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center" />
+
+            <Button Content="Volver al panel"
+                    Width="170"
+                    Height="32"
+                    HorizontalAlignment="Right"
+                    Click="VolverAlPanelPrincipal_Click" />
+        </Grid>
+
+        <GroupBox Grid.Row="1"
+                  Header="Generar archivo desde Libro IVA"
+                  Margin="0,0,0,15">
+            <Grid Margin="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="170" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Período contable" />
+                    <ComboBox ItemsSource="{Binding Periodos}"
+                              SelectedItem="{Binding PeriodoSeleccionado}"
+                              DisplayMemberPath="Nombre"
+                              Height="28"
+                              Margin="0,5,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Libro IVA" />
+                    <ComboBox ItemsSource="{Binding TiposLibro}"
+                              SelectedItem="{Binding TipoLibroSeleccionado}"
+                              Height="28"
+                              Margin="0,5,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Versión formato" />
+                    <TextBox Text="{Binding VersionFormato}"
+                             Height="28"
+                             Margin="0,5,0,0" />
+                </StackPanel>
+
+                <Button Grid.Column="3"
+                        Content="Generar exportación"
+                        Height="30"
+                        VerticalAlignment="Bottom"
+                        Command="{Binding GenerarCommand}" />
+            </Grid>
+        </GroupBox>
+
+        <Grid Grid.Row="2"
+              Margin="0,0,0,10">
+            <TextBlock Text="{Binding Mensaje}"
+                       Foreground="DarkRed"
+                       TextWrapping="Wrap" />
+
+            <Button Content="Guardar CSV seleccionado"
+                    Width="180"
+                    Height="28"
+                    HorizontalAlignment="Right"
+                    Click="GuardarArchivo_Click" />
+        </Grid>
+
+        <DataGrid Grid.Row="3"
+                  ItemsSource="{Binding Exportaciones}"
+                  SelectedItem="{Binding ExportacionSeleccionada,
+                                         Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Generado"
+                                    Binding="{Binding GeneradoEn,
+                                                      StringFormat=g}"
+                                    Width="150" />
+                <DataGridTextColumn Header="Anexo"
+                                    Binding="{Binding TipoAnexo}"
+                                    Width="220" />
+                <DataGridTextColumn Header="Versión"
+                                    Binding="{Binding VersionFormato}"
+                                    Width="100" />
+                <DataGridTextColumn Header="Archivo"
+                                    Binding="{Binding NombreArchivo}"
+                                    Width="*" />
+                <DataGridTextColumn Header="Hash SHA-256"
+                                    Binding="{Binding HashSha256}"
+                                    Width="250" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

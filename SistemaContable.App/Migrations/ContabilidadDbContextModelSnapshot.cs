@@ -223,6 +223,10 @@ namespace SistemaContable.App.Migrations
                     b.Property<decimal>("Cantidad")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -814,6 +818,95 @@ namespace SistemaContable.App.Migrations
                     b.ToTable("ReglasCuentas");
                 });
 
+            modelBuilder.Entity("SistemaContableDTE.Models.ResultadoValidacionDte", b =>
+                {
+                    b.Property<int>("ResultadoValidacionDteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DocumentoDteId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ErroresJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Resultado")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TipoValidacion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ValidadoEn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VersionSchema")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("VersionValidador")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ResultadoValidacionDteId");
+
+                    b.HasIndex("DocumentoDteId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("ResultadosValidacionDte");
+                });
+
+            modelBuilder.Entity("SistemaContableDTE.Models.ResumenTributario", b =>
+                {
+                    b.Property<int>("ResumenTributarioId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DocumentoDteId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("JsonOriginal")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("MontoTotalOperacion")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalExenta")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalGravada")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalIva")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalNoSujeta")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalPagar")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ResumenTributarioId");
+
+                    b.HasIndex("DocumentoDteId")
+                        .IsUnique();
+
+                    b.ToTable("ResumenesTributarios");
+                });
+
             modelBuilder.Entity("SistemaContableDTE.Models.Rol", b =>
                 {
                     b.Property<int>("RolId")
@@ -1252,6 +1345,35 @@ namespace SistemaContable.App.Migrations
                     b.Navigation("ReglaContable");
                 });
 
+            modelBuilder.Entity("SistemaContableDTE.Models.ResultadoValidacionDte", b =>
+                {
+                    b.HasOne("SistemaContableDTE.Models.DocumentoDte", "DocumentoDte")
+                        .WithMany("ResultadosValidacion")
+                        .HasForeignKey("DocumentoDteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaContableDTE.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("DocumentoDte");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("SistemaContableDTE.Models.ResumenTributario", b =>
+                {
+                    b.HasOne("SistemaContableDTE.Models.DocumentoDte", "DocumentoDte")
+                        .WithOne("ResumenTributario")
+                        .HasForeignKey("SistemaContableDTE.Models.ResumenTributario", "DocumentoDteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DocumentoDte");
+                });
+
             modelBuilder.Entity("SistemaContableDTE.Models.Tercero", b =>
                 {
                     b.HasOne("Empresa", "Empresa")
@@ -1295,6 +1417,10 @@ namespace SistemaContable.App.Migrations
                     b.Navigation("Archivo");
 
                     b.Navigation("Participantes");
+
+                    b.Navigation("ResultadosValidacion");
+
+                    b.Navigation("ResumenTributario");
                 });
 
             modelBuilder.Entity("SistemaContableDTE.Models.ExportacionFiscal", b =>

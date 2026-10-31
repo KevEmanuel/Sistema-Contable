@@ -14,6 +14,9 @@ public class DetalleDTe
     public int NumeroItem{get;set;}
     public int? TipoItem {get;set;}
 
+    [StringLength(100)]
+    public string? Codigo { get; set; }
+
     [Required]
     public decimal Cantidad {get;set;}
     [StringLength(500)]

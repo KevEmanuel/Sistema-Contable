@@ -165,4 +165,34 @@ public static class ServicioCatalogoCuentas
         contexto.SaveChanges();
     }
 
+    public static void Eliminar(int empresaId, int cuentaContableId)
+    {
+        using var contexto = new ContabilidadDbContext();
+
+        CuentaContable? cuenta = contexto.CuentasContables
+            .SingleOrDefault(cuenta =>
+                cuenta.CuentaContableId == cuentaContableId &&
+                cuenta.EmpresaId == empresaId);
+
+        if (cuenta is null)
+        {
+            throw new InvalidOperationException(
+                "La cuenta seleccionada no existe.");
+        }
+
+        if (contexto.CuentasContables.Any(otra =>
+                otra.CuentaPadreId == cuentaContableId) ||
+            contexto.ReglasCuentas.Any(linea =>
+                linea.CuentaContableId == cuentaContableId) ||
+            contexto.DetallesPartida.Any(detalle =>
+                detalle.CuentaContableId == cuentaContableId))
+        {
+            throw new InvalidOperationException(
+                "No se puede eliminar esta cuenta porque tiene subcuentas o está utilizada en reglas o partidas. Puedes desactivarla.");
+        }
+
+        contexto.CuentasContables.Remove(cuenta);
+        contexto.SaveChanges();
+    }
+
 }

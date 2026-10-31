@@ -33,20 +33,14 @@ public static class ServicioReglasContables
         string nombre,
         string? tipoDte,
         RolEmpresaDte? rolEmpresa,
-        string condicionJson,
         DateTime vigenciaDesde,
-        DateTime? vigenciaHasta)
+        DateTime? vigenciaHasta,
+        string condicionJson)
     {
         if (string.IsNullOrWhiteSpace(nombre))
         {
             throw new ArgumentException(
                 "Ingresa el nombre de la regla contable.");
-        }
-
-        if (string.IsNullOrWhiteSpace(condicionJson))
-        {
-            throw new ArgumentException(
-                "Ingresa la condición de la regla.");
         }
 
         if (vigenciaHasta.HasValue &&
@@ -55,6 +49,10 @@ public static class ServicioReglasContables
             throw new ArgumentException(
                 "La vigencia final no puede ser menor que la inicial.");
         }
+
+        string condicionesValidadas =
+            ServicioCondicionesReglaContable.ValidarYNormalizarJson(
+                condicionJson);
 
         using var contexto = new ContabilidadDbContext();
 
@@ -75,7 +73,7 @@ public static class ServicioReglasContables
                 ? null
                 : tipoDte.Trim(),
             RolEmpresa = rolEmpresa,
-            CondicionJson = condicionJson.Trim(),
+            CondicionJson = condicionesValidadas,
             VigenciDesde = vigenciaDesde.Date,
             VigenciaHasta = vigenciaHasta?.Date,
             Version = ultimaVersion + 1,
@@ -95,11 +93,7 @@ public static class ServicioReglasContables
         LadoContable lado,
         string formula)
     {
-        if (string.IsNullOrWhiteSpace(formula))
-        {
-            throw new ArgumentException(
-                "Ingresa la fórmula o importe de la línea contable.");
-        }
+        formula = NormalizarFormula(formula);
 
         using var contexto = new ContabilidadDbContext();
 
@@ -145,6 +139,200 @@ public static class ServicioReglasContables
             .AsNoTracking()
             .Include(linea => linea.CuentaContable)
             .Single(linea => linea.ReglaCuentaId == lineaNueva.ReglaCuentaId);
+    }
+
+    public static void ActualizarDatos(
+        int empresaId,
+        int reglaContableId,
+        string nombre,
+        string? tipoDte,
+        RolEmpresaDte rolEmpresa,
+        DateTime vigenciaDesde,
+        DateTime? vigenciaHasta,
+        string condicionJson)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            throw new ArgumentException(
+                "Ingresa el nombre de la regla contable.");
+        }
+
+        if (vigenciaHasta.HasValue &&
+            vigenciaHasta.Value.Date < vigenciaDesde.Date)
+        {
+            throw new ArgumentException(
+                "La vigencia final no puede ser menor que la inicial.");
+        }
+
+        using var contexto = new ContabilidadDbContext();
+        ReglaContable? regla = contexto.ReglasContables
+            .SingleOrDefault(item =>
+                item.ReglaContableId == reglaContableId &&
+                item.EmpresaId == empresaId);
+
+        if (regla is null)
+        {
+            throw new InvalidOperationException(
+                "No se encontró la regla contable seleccionada.");
+        }
+
+        if (contexto.PartidasContables.Any(partida =>
+                partida.ReglaContableId == reglaContableId))
+        {
+            throw new InvalidOperationException(
+                "No se puede modificar una regla utilizada en partidas; crea una nueva versión para conservar el historial contable.");
+        }
+
+        regla.CondicionJson =
+            ServicioCondicionesReglaContable.ValidarYNormalizarJson(
+                condicionJson);
+        regla.Nombre = nombre.Trim();
+        regla.TipoDte = string.IsNullOrWhiteSpace(tipoDte)
+            ? null
+            : tipoDte.Trim();
+        regla.RolEmpresa = rolEmpresa == RolEmpresaDte.NoDeterminado
+            ? null
+            : rolEmpresa;
+        regla.VigenciDesde = vigenciaDesde.Date;
+        regla.VigenciaHasta = vigenciaHasta?.Date;
+
+        contexto.SaveChanges();
+    }
+
+    public static void ActualizarCuenta(
+        int empresaId,
+        int reglaContableId,
+        int reglaCuentaId,
+        int cuentaContableId,
+        LadoContable lado,
+        string formula)
+    {
+        formula = NormalizarFormula(formula);
+        using var contexto = new ContabilidadDbContext();
+        ReglaCuenta? linea = contexto.ReglasCuentas
+            .Include(item => item.ReglaContable)
+            .SingleOrDefault(item =>
+                item.ReglaCuentaId == reglaCuentaId &&
+                item.ReglaContableId == reglaContableId &&
+                item.ReglaContable != null &&
+                item.ReglaContable.EmpresaId == empresaId);
+
+        if (linea is null)
+        {
+            throw new InvalidOperationException(
+                "No se encontró la línea seleccionada.");
+        }
+
+        bool cuentaValida = contexto.CuentasContables.Any(cuenta =>
+            cuenta.CuentaContableId == cuentaContableId &&
+            cuenta.EmpresaId == empresaId &&
+            cuenta.Activa);
+        if (!cuentaValida)
+        {
+            throw new InvalidOperationException(
+                "Selecciona una cuenta activa del catálogo.");
+        }
+
+        linea.CuentaContableId = cuentaContableId;
+        linea.Lado = lado;
+        linea.Formula = formula;
+        contexto.SaveChanges();
+    }
+
+    public static void EliminarCuenta(
+        int empresaId,
+        int reglaContableId,
+        int reglaCuentaId)
+    {
+        using var contexto = new ContabilidadDbContext();
+        ReglaCuenta? linea = contexto.ReglasCuentas
+            .Include(item => item.ReglaContable)
+            .SingleOrDefault(item =>
+                item.ReglaCuentaId == reglaCuentaId &&
+                item.ReglaContableId == reglaContableId &&
+                item.ReglaContable != null &&
+                item.ReglaContable.EmpresaId == empresaId);
+
+        if (linea is null)
+        {
+            throw new InvalidOperationException(
+                "No se encontró la línea seleccionada.");
+        }
+
+        contexto.ReglasCuentas.Remove(linea);
+        contexto.SaveChanges();
+    }
+
+    public static void Eliminar(
+        int empresaId,
+        int reglaContableId)
+    {
+        using var contexto = new ContabilidadDbContext();
+        ReglaContable? regla = contexto.ReglasContables
+            .Include(item => item.Cuentas)
+            .SingleOrDefault(item =>
+                item.ReglaContableId == reglaContableId &&
+                item.EmpresaId == empresaId);
+
+        if (regla is null)
+        {
+            throw new InvalidOperationException(
+                "No se encontró la regla contable seleccionada.");
+        }
+
+        if (contexto.PartidasContables.Any(partida =>
+                partida.ReglaContableId == reglaContableId))
+        {
+            throw new InvalidOperationException(
+                "No se puede eliminar una regla utilizada por partidas contables.");
+        }
+
+        contexto.ReglasCuentas.RemoveRange(regla.Cuentas);
+        contexto.ReglasContables.Remove(regla);
+        contexto.SaveChanges();
+    }
+
+    private static string NormalizarFormula(string formula)
+    {
+        if (string.IsNullOrWhiteSpace(formula))
+        {
+            throw new ArgumentException(
+                "Selecciona el importe que debe usar esta línea.");
+        }
+
+        string normalizada = formula
+            .Trim()
+            .Replace(" ", string.Empty)
+            .ToUpperInvariant();
+
+        if (normalizada is "BASEGRAVADA" or
+            "MONTOEXENTO" or
+            "MONTONOSUJETO" or
+            "IVA" or
+            "TOTALOPERACION")
+        {
+            return normalizada;
+        }
+
+        if ((decimal.TryParse(
+                 formula,
+                 System.Globalization.NumberStyles.Number,
+                 System.Globalization.CultureInfo.InvariantCulture,
+                 out decimal importe) ||
+             decimal.TryParse(
+                 formula,
+                 System.Globalization.NumberStyles.Number,
+                 System.Globalization.CultureInfo.CurrentCulture,
+                 out importe)) &&
+            importe > 0)
+        {
+            return importe.ToString(
+                "0.00",
+                System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        throw new ArgumentException(
+            "Selecciona una base del DTE o ingresa un importe fijo mayor que cero.");
     }
 
     public static void CambiarEstado(

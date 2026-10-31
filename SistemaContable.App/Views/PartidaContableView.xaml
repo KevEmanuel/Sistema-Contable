@@ -180,7 +180,7 @@
                         Margin="0,0,10,0"
                         Command="{Binding GuardarBorradorCommand}" />
 
-                <Button Content="Contabilizar partida"
+                <Button Content="Crear y contabilizar"
                         Width="170"
                         Height="32"
                         Command="{Binding ContabilizarCommand}" />
@@ -198,11 +198,15 @@
                        TextWrapping="Wrap"
                        Margin="0,0,0,12" />
 
-            <GroupBox Header="Partidas registradas">
+            <GroupBox Header="Partidas registradas"
+                      Margin="0,0,0,15">
                 <DataGrid ItemsSource="{Binding Partidas}"
+                          SelectedItem="{Binding PartidaSeleccionada,
+                                                 Mode=TwoWay}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           CanUserAddRows="False"
+                          SelectionMode="Single"
                           Height="220"
                           Margin="15">
                     <DataGrid.Columns>
@@ -227,6 +231,72 @@
                                             Width="75" />
                     </DataGrid.Columns>
                 </DataGrid>
+            </GroupBox>
+
+            <GroupBox Header="Acciones de la partida seleccionada"
+                      Margin="0,0,0,15">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="170" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Partida seleccionada" />
+                        <TextBlock Text="{Binding PartidaSeleccionada.Glosa}"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Content="Contabilizar borrador"
+                            Height="32"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,12,0"
+                            Command="{Binding ContabilizarBorradorCommand}" />
+
+                    <StackPanel Grid.Column="2"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Glosa de reversión *" />
+                        <TextBox Text="{Binding GlosaReversa,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                                 Height="28"
+                                 Margin="0,5,0,0" />
+
+                        <TextBlock Text="Fecha de reversión"
+                                   Margin="0,10,0,0" />
+                        <DatePicker SelectedDate="{Binding FechaReversa}"
+                                    Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Button Grid.Column="3"
+                            Content="Reversar partida"
+                            Height="32"
+                            VerticalAlignment="Bottom"
+                            Command="{Binding ReversarCommand}" />
+
+                    <Button Grid.Row="1"
+                            Grid.Column="1"
+                            Content="Actualizar borrador"
+                            Height="32"
+                            Margin="0,12,12,0"
+                            Command="{Binding ActualizarBorradorCommand}" />
+
+                    <Button Grid.Row="1"
+                            Grid.Column="3"
+                            Content="Eliminar borrador"
+                            Height="32"
+                            Margin="0,12,0,0"
+                            Command="{Binding EliminarBorradorCommand}" />
+                </Grid>
             </GroupBox>
         </StackPanel>
     </ScrollViewer>

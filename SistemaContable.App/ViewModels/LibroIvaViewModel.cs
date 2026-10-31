@@ -14,8 +14,10 @@ public class LibroIvaViewModel : ViewModelBase
     private readonly RelayCommand cargarCommand;
 
     private DocumentoDte? documentoSeleccionado;
+    private DocumentoDte? documentoRelacionadoSeleccionado;
     private PeriodoContable? periodoSeleccionado;
-    private TipoLibroIva tipoLibroSeleccionado;
+    private bool esNotaSeleccionada;
+    private string tipoLibroSugerido = "Selecciona un DTE para ver su libro.";
     private string mensaje = string.Empty;
 
     public ObservableCollection<DocumentoDte> DocumentosValidados { get; }
@@ -24,16 +26,52 @@ public class LibroIvaViewModel : ViewModelBase
     public ObservableCollection<PeriodoContable> Periodos { get; }
         = new();
 
-    public ObservableCollection<RegistroLibroIva> Registros { get; }
+    public ObservableCollection<DocumentoDte> DocumentosRelacionables { get; }
         = new();
 
-    public List<TipoLibroIva> TiposLibro { get; } =
-        Enum.GetValues<TipoLibroIva>().ToList();
+    public ObservableCollection<RegistroLibroIva> Registros { get; }
+        = new();
 
     public DocumentoDte? DocumentoSeleccionado
     {
         get => documentoSeleccionado;
-        set => EstablecerPropiedad(ref documentoSeleccionado, value);
+        set
+        {
+            if (EstablecerPropiedad(ref documentoSeleccionado, value))
+            {
+                EsNotaSeleccionada =
+                    value?.TipoDte.Trim() is "05" or "06";
+                DocumentoRelacionadoSeleccionado = null;
+                CargarDocumentosRelacionables();
+                ActualizarTipoLibroSugerido();
+            }
+        }
+    }
+
+    public DocumentoDte? DocumentoRelacionadoSeleccionado
+    {
+        get => documentoRelacionadoSeleccionado;
+        set
+        {
+            if (EstablecerPropiedad(
+                    ref documentoRelacionadoSeleccionado,
+                    value))
+            {
+                ActualizarTipoLibroSugerido();
+            }
+        }
+    }
+
+    public bool EsNotaSeleccionada
+    {
+        get => esNotaSeleccionada;
+        private set => EstablecerPropiedad(ref esNotaSeleccionada, value);
+    }
+
+    public string TipoLibroSugerido
+    {
+        get => tipoLibroSugerido;
+        private set => EstablecerPropiedad(ref tipoLibroSugerido, value);
     }
 
     public PeriodoContable? PeriodoSeleccionado
@@ -48,12 +86,6 @@ public class LibroIvaViewModel : ViewModelBase
         }
     }
 
-    public TipoLibroIva TipoLibroSeleccionado
-    {
-        get => tipoLibroSeleccionado;
-        set => EstablecerPropiedad(ref tipoLibroSeleccionado, value);
-    }
-
     public string Mensaje
     {
         get => mensaje;
@@ -65,8 +97,6 @@ public class LibroIvaViewModel : ViewModelBase
 
     public LibroIvaViewModel()
     {
-        tipoLibroSeleccionado = TipoLibroIva.Compras;
-
         generarCommand = new RelayCommand(GenerarRegistro);
         cargarCommand = new RelayCommand(_ => CargarDatos());
 
@@ -84,6 +114,7 @@ public class LibroIvaViewModel : ViewModelBase
         int empresaId = SesionActual.EmpresaId.Value;
 
         DocumentosValidados.Clear();
+        DocumentoSeleccionado = null;
 
         foreach (DocumentoDte documento in
                  ServicioLibroIva.ObtenerDocumentosValidados(empresaId))
@@ -139,7 +170,7 @@ public class LibroIvaViewModel : ViewModelBase
                 SesionActual.EmpresaId.Value,
                 DocumentoSeleccionado.DocumentoDteId,
                 PeriodoSeleccionado.PeriodoContableId,
-                TipoLibroSeleccionado);
+                DocumentoRelacionadoSeleccionado?.DocumentoDteId);
 
             Mensaje = "Registro de Libro IVA generado correctamente.";
 
@@ -150,6 +181,58 @@ public class LibroIvaViewModel : ViewModelBase
         catch (Exception error)
         {
             Mensaje = error.Message;
+        }
+    }
+
+    private void CargarDocumentosRelacionables()
+    {
+        DocumentosRelacionables.Clear();
+
+        if (!EsNotaSeleccionada ||
+            SesionActual.EmpresaId is not int empresaId ||
+            DocumentoSeleccionado is null)
+        {
+            return;
+        }
+
+        foreach (DocumentoDte documento in
+                 ServicioLibroIva.ObtenerDocumentosRelacionables(
+                     empresaId,
+                     DocumentoSeleccionado.DocumentoDteId))
+        {
+            DocumentosRelacionables.Add(documento);
+        }
+
+        if (DocumentoSeleccionado.DocumentoRelacionadoId is int relacionadoId)
+        {
+            DocumentoRelacionadoSeleccionado =
+                DocumentosRelacionables.FirstOrDefault(documento =>
+                    documento.DocumentoDteId == relacionadoId);
+        }
+    }
+
+    private void ActualizarTipoLibroSugerido()
+    {
+        if (SesionActual.EmpresaId is not int empresaId ||
+            DocumentoSeleccionado is null)
+        {
+            TipoLibroSugerido = "Selecciona un DTE para ver su libro.";
+            return;
+        }
+
+        try
+        {
+            TipoLibroIva tipoLibro =
+                ServicioLibroIva.ObtenerTipoLibroSugerido(
+                    empresaId,
+                    DocumentoSeleccionado.DocumentoDteId,
+                    DocumentoRelacionadoSeleccionado?.DocumentoDteId);
+
+            TipoLibroSugerido = $"Se registrará en: {tipoLibro}.";
+        }
+        catch (InvalidOperationException error)
+        {
+            TipoLibroSugerido = error.Message;
         }
     }
 }

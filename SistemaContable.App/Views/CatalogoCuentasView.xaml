@@ -102,6 +102,11 @@
                     <Button Content="Activar / Desactivar"
                             Height="28"
                             Command="{Binding CambiarEstadoCommand}"/>
+
+                    <Button Content="Eliminar seleccionada"
+                            Height="28"
+                            Margin="0,6,0,0"
+                            Command="{Binding EliminarCommand}"/>
                 </StackPanel>
 
             </Grid>

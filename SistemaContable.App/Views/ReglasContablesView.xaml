@@ -28,8 +28,8 @@
                 <Grid Margin="15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="120"/>
-                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="1.5*"/>
+                        <ColumnDefinition Width="1.5*"/>
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
@@ -51,9 +51,10 @@
                     <StackPanel Grid.Row="0"
                                 Grid.Column="1"
                                 Margin="0,0,12,12">
-                        <TextBlock Text="Tipo DTE"/>
-                        <TextBox Text="{Binding TipoDte,
-                                                UpdateSourceTrigger=PropertyChanged}"
+                        <TextBlock Text="Aplicar a tipo de DTE"/>
+                        <ComboBox ItemsSource="{Binding TiposDte}"
+                                  SelectedItem="{Binding TipoDteSeleccionado}"
+                                  DisplayMemberPath="Descripcion"
                                  Height="28"
                                  Margin="0,5,0,0"/>
                     </StackPanel>
@@ -63,7 +64,9 @@
                                 Margin="0,0,0,12">
                         <TextBlock Text="Rol de empresa"/>
                         <ComboBox ItemsSource="{Binding RolesEmpresa}"
-                                  SelectedItem="{Binding RolEmpresaSeleccionado}"
+                                  SelectedValuePath="Valor"
+                                  DisplayMemberPath="Descripcion"
+                                  SelectedValue="{Binding RolEmpresaSeleccionado}"
                                   Height="28"
                                   Margin="0,5,0,0"/>
                     </StackPanel>
@@ -86,24 +89,105 @@
                                     Margin="0,5,0,0"/>
                     </StackPanel>
 
-                    <Button Grid.Row="1"
-                            Grid.Column="2"
-                            Content="Crear regla"
-                            Height="30"
-                            VerticalAlignment="Bottom"
-                            Command="{Binding CrearReglaCommand}"/>
-
-                    <StackPanel Grid.Row="2"
-                                Grid.ColumnSpan="3">
-                        <TextBlock Text="Condición JSON *"/>
-                        <TextBox Text="{Binding CondicionJson,
-                                                UpdateSourceTrigger=PropertyChanged}"
-                                 Height="55"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Margin="0,5,0,0"/>
+                    <StackPanel Grid.Row="1"
+                                Grid.Column="2"
+                                VerticalAlignment="Bottom">
+                        <Button Content="Crear regla"
+                                Height="30"
+                                Command="{Binding CrearReglaCommand}"/>
+                        <Button Content="Actualizar regla seleccionada"
+                                Height="30"
+                                Margin="0,6,0,0"
+                                Command="{Binding ActualizarReglaCommand}"/>
+                        <Button Content="Eliminar regla seleccionada"
+                                Height="30"
+                                Margin="0,6,0,0"
+                                Command="{Binding EliminarReglaCommand}"/>
                     </StackPanel>
+
+                    <GroupBox Grid.Row="2"
+                              Grid.ColumnSpan="3"
+                              Header="Condiciones adicionales"
+                              Margin="0,0,0,5">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Agrega criterios por importe. Si agregas varios, todos deben cumplirse para aplicar la regla."
+                                       Foreground="DimGray"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,8"/>
+
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Margin="0,0,0,6">
+                                <Button Content="Agregar condición"
+                                        Height="28"
+                                        Padding="10,0"
+                                        Margin="0,0,6,0"
+                                        Command="{Binding AgregarCondicionCommand}"/>
+                                <Button Content="Quitar seleccionada"
+                                        Height="28"
+                                        Padding="10,0"
+                                        Command="{Binding QuitarCondicionCommand}"/>
+                            </StackPanel>
+
+                            <DataGrid ItemsSource="{Binding Condiciones}"
+                                      SelectedItem="{Binding CondicionSeleccionada}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      CanUserDeleteRows="False"
+                                      HeadersVisibility="Column"
+                                      IsReadOnly="False"
+                                      Height="125"
+                                      Margin="0,0,0,8">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="Importe"
+                                                            Width="2*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox ItemsSource="{Binding Campos}"
+                                                          SelectedValuePath="Valor"
+                                                          DisplayMemberPath="Descripcion"
+                                                          SelectedValue="{Binding Campo,
+                                                                                  UpdateSourceTrigger=PropertyChanged}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Comparación"
+                                                            Width="2*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox ItemsSource="{Binding Operadores}"
+                                                          SelectedValuePath="Valor"
+                                                          DisplayMemberPath="Descripcion"
+                                                          SelectedValue="{Binding Operador,
+                                                                                  UpdateSourceTrigger=PropertyChanged}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Valor"
+                                                            Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Valor,
+                                                                        UpdateSourceTrigger=PropertyChanged}"
+                                                         BorderThickness="0"
+                                                         Padding="3"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <TextBlock Text="Vista previa de la condición generada"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding CondicionJsonVistaPrevia, Mode=OneWay}"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     MinHeight="52"
+                                     VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </GroupBox>
                 </Grid>
             </GroupBox>
 
@@ -193,9 +277,16 @@
 
                         <StackPanel Grid.Column="2"
                                     Margin="0,0,12,0">
-                            <TextBlock Text="Fórmula o importe"/>
-                            <TextBox Text="{Binding Formula,
+                            <TextBlock Text="Importe de la línea"/>
+                            <ComboBox ItemsSource="{Binding FormulasContables}"
+                                      SelectedItem="{Binding FormulaSeleccionada}"
+                                      DisplayMemberPath="Descripcion"
+                                      Height="28"
+                                      Margin="0,5,0,0"/>
+                            <TextBox Text="{Binding ImporteFijo,
                                                     UpdateSourceTrigger=PropertyChanged}"
+                                     IsEnabled="{Binding FormulaSeleccionada.EsImporteFijo}"
+                                     ToolTip="Completa este campo solo si seleccionas Importe fijo."
                                      Height="28"
                                      Margin="0,5,0,0"/>
                         </StackPanel>
@@ -209,11 +300,21 @@
                             <Button Content="Activar / Desactivar regla"
                                     Height="28"
                                     Command="{Binding CambiarEstadoCommand}"/>
+
+                            <Button Content="Actualizar línea seleccionada"
+                                    Height="28"
+                                    Margin="0,6,0,0"
+                                    Command="{Binding ActualizarCuentaCommand}"/>
+                            <Button Content="Eliminar línea seleccionada"
+                                    Height="28"
+                                    Margin="0,6,0,0"
+                                    Command="{Binding EliminarCuentaCommand}"/>
                         </StackPanel>
                     </Grid>
 
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding LineasRegla}"
+                              SelectedItem="{Binding LineaReglaSeleccionada}"
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
@@ -232,7 +333,7 @@
                                                 Binding="{Binding Lado}"
                                                 Width="100"/>
                             <DataGridTextColumn Header="Fórmula"
-                                                Binding="{Binding Formula}"
+                                                Binding="{Binding FormulaDescripcion}"
                                                 Width="220"/>
                         </DataGrid.Columns>
                     </DataGrid>

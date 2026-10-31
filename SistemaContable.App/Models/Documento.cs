@@ -49,4 +49,9 @@ public class DocumentoDte
         new List<DteParticipante>();
 
     public ArchivoDte? Archivo { get; set; }
+
+    public ResumenTributario? ResumenTributario { get; set; }
+
+    public ICollection<ResultadoValidacionDte> ResultadosValidacion { get; set; } =
+        new List<ResultadoValidacionDte>();
 }

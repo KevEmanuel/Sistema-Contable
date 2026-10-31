@@ -33,11 +33,15 @@
                   Header="Generar registro desde DTE validado"
                   Margin="0,0,0,15">
             <Grid Margin="15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="180" />
-                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="150" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0"
@@ -45,12 +49,41 @@
                     <TextBlock Text="DTE validado" />
                     <ComboBox ItemsSource="{Binding DocumentosValidados}"
                               SelectedItem="{Binding DocumentoSeleccionado}"
-                              DisplayMemberPath="CodigoGeneracion"
                               Height="28"
-                              Margin="0,5,0,0" />
+                              Margin="0,5,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TipoDte}" />
+                                    <TextBlock Text=" | " />
+                                    <TextBlock Text="{Binding NumeroControl}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="DTE original (para notas)" />
+                    <ComboBox ItemsSource="{Binding DocumentosRelacionables}"
+                              SelectedItem="{Binding DocumentoRelacionadoSeleccionado}"
+                              IsEnabled="{Binding EsNotaSeleccionada}"
+                              Height="28"
+                              Margin="0,5,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TipoDte}" />
+                                    <TextBlock Text=" | " />
+                                    <TextBlock Text="{Binding NumeroControl}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
                             Margin="0,0,12,0">
                     <TextBlock Text="Período contable" />
                     <ComboBox ItemsSource="{Binding Periodos}"
@@ -60,20 +93,19 @@
                               Margin="0,5,0,0" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="2"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Tipo de libro" />
-                    <ComboBox ItemsSource="{Binding TiposLibro}"
-                              SelectedItem="{Binding TipoLibroSeleccionado}"
-                              Height="28"
-                              Margin="0,5,0,0" />
-                </StackPanel>
-
                 <Button Grid.Column="3"
                         Content="Generar registro"
                         Height="30"
-                        VerticalAlignment="Bottom"
+                        VerticalAlignment="Center"
                         Command="{Binding GenerarCommand}" />
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Grid.ColumnSpan="4"
+                           Text="{Binding TipoLibroSugerido}"
+                           Margin="0,12,0,0"
+                           Foreground="#1F4E79"
+                           TextWrapping="Wrap" />
             </Grid>
         </GroupBox>
 
@@ -103,6 +135,21 @@
                 <DataGridTextColumn Header="Código DTE"
                                     Binding="{Binding DocumentoDte.CodigoGeneracion}"
                                     Width="*" />
+                <DataGridTextColumn Header="Número de control"
+                                    Binding="{Binding DocumentoDte.NumeroControl}"
+                                    Width="180" />
+                <DataGridTextColumn Header="Tipo DTE"
+                                    Binding="{Binding DocumentoDte.TipoDte}"
+                                    Width="80" />
+                <DataGridTextColumn Header="Cliente / proveedor"
+                                    Binding="{Binding NombreTercero}"
+                                    Width="2*" />
+                <DataGridTextColumn Header="NIT"
+                                    Binding="{Binding NitTercero}"
+                                    Width="130" />
+                <DataGridTextColumn Header="NRC"
+                                    Binding="{Binding NrcTercero}"
+                                    Width="110" />
                 <DataGridTextColumn Header="Libro"
                                     Binding="{Binding TipoLibro}"
                                     Width="160" />

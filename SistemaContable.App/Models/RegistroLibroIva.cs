@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 namespace SistemaContableDTE.Models;
@@ -32,6 +33,15 @@ public class RegistroLibroIva
 
     public EstadoRegistroIva Estado { get; set; } =
         EstadoRegistroIva.Vigente;
+
+    [NotMapped]
+    public string NombreTercero { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string? NitTercero { get; set; }
+
+    [NotMapped]
+    public string? NrcTercero { get; set; }
 
     public DocumentoDte? DocumentoDte { get; set; }
 

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SistemaContableDTE.Data;
 using SistemaContableDTE.Models;
@@ -22,7 +17,48 @@ public static class ServicioLibroIva
             .AsNoTracking()
             .Where(documento =>
                 documento.EmpresaId == empresaId &&
-                documento.Estado == EstadoDocumentoDte.Validado)
+                documento.Estado == EstadoDocumentoDte.Validado &&
+                !contexto.RegistrosLibroIva.Any(registro =>
+                    registro.DocumentoDteId == documento.DocumentoDteId))
+            .OrderByDescending(documento => documento.FechaEmision)
+            .ToList();
+    }
+
+    public static List<DocumentoDte> ObtenerDocumentosRelacionables(
+        int empresaId,
+        int documentoNotaId)
+    {
+        using var contexto = new ContabilidadDbContext();
+
+        DocumentoDte? nota = contexto.DocumentosDte
+            .AsNoTracking()
+            .SingleOrDefault(documento =>
+                documento.DocumentoDteId == documentoNotaId &&
+                documento.EmpresaId == empresaId);
+
+        if (nota is null || !EsNotaAjuste(nota.TipoDte))
+        {
+            return new List<DocumentoDte>();
+        }
+
+        List<RegistroLibroIva> registrosRelacionables =
+            contexto.RegistrosLibroIva
+            .AsNoTracking()
+            .Include(registro => registro.DocumentoDte)
+            .Where(registro =>
+                registro.Estado == EstadoRegistroIva.Vigente &&
+                registro.DocumentoDte!.EmpresaId == empresaId &&
+                registro.DocumentoDte.DocumentoDteId != documentoNotaId &&
+                registro.DocumentoDte.RolEmpresa == nota.RolEmpresa &&
+                registro.DocumentoDte.TipoDte != "05" &&
+                registro.DocumentoDte.TipoDte != "06" &&
+                (registro.DocumentoDte.Estado == EstadoDocumentoDte.Validado ||
+                 registro.DocumentoDte.Estado == EstadoDocumentoDte.Contabilizado))
+            .ToList();
+
+        return registrosRelacionables
+            .Select(registro => registro.DocumentoDte!)
+            .DistinctBy(documento => documento.DocumentoDteId)
             .OrderByDescending(documento => documento.FechaEmision)
             .ToList();
     }
@@ -33,21 +69,53 @@ public static class ServicioLibroIva
     {
         using var contexto = new ContabilidadDbContext();
 
-        return contexto.RegistrosLibroIva
+        List<RegistroLibroIva> registros = contexto.RegistrosLibroIva
             .AsNoTracking()
             .Include(registro => registro.DocumentoDte)
+            .ThenInclude(documento => documento!.Participantes)
             .Where(registro =>
                 registro.PeriodoContableId == periodoContableId &&
                 registro.DocumentoDte!.EmpresaId == empresaId)
             .OrderBy(registro => registro.FechaRegistro)
             .ToList();
+
+        CompletarDatosContraparte(registros);
+        return registros;
+    }
+
+    internal static void CompletarDatosContraparte(
+        IEnumerable<RegistroLibroIva> registros)
+    {
+        foreach (RegistroLibroIva registro in registros)
+        {
+            DocumentoDte documento = registro.DocumentoDte
+                ?? throw new InvalidOperationException(
+                    $"El registro de IVA {registro.RegistroLibroIvaId} no tiene DTE asociado.");
+
+            RolParticipanteDte rolContraparte = documento.RolEmpresa switch
+            {
+                RolEmpresaDte.Emisor => RolParticipanteDte.Receptor,
+                RolEmpresaDte.Receptor => RolParticipanteDte.Emisor,
+                _ => throw new InvalidOperationException(
+                    $"No se determinó el rol empresarial del DTE {documento.NumeroControl}.")
+            };
+
+            DteParticipante participante = documento.Participantes
+                .SingleOrDefault(item => item.Rol == rolContraparte)
+                ?? throw new InvalidOperationException(
+                    $"El DTE {documento.NumeroControl} no tiene los datos del cliente o proveedor.");
+
+            registro.NombreTercero = participante.NombreSnapshot;
+            registro.NitTercero = participante.NitSnapshot;
+            registro.NrcTercero = participante.NrcSnapshot;
+        }
     }
 
     public static RegistroLibroIva Generar(
         int empresaId,
         int documentoDteId,
         int periodoContableId,
-        TipoLibroIva tipoLibro)
+        int? documentoRelacionadoId = null)
     {
         using var contexto = new ContabilidadDbContext();
 
@@ -95,6 +163,12 @@ public static class ServicioLibroIva
                 "La fecha del DTE no pertenece al período seleccionado.");
         }
 
+        TipoLibroIva tipoLibro = ResolverTipoLibro(
+            contexto,
+            documento,
+            documentoRelacionadoId,
+            out DocumentoDte? documentoRelacionado);
+
         decimal baseGravada = contexto.DetallesDte
             .Where(detalle =>
                 detalle.DocumentoDteId == documentoDteId)
@@ -110,33 +184,19 @@ public static class ServicioLibroIva
                 detalle.DocumentoDteId == documentoDteId)
             .Sum(detalle => (decimal?)detalle.VentaNoSujeta) ?? 0;
 
-        ArchivoDte? archivo = contexto.ArchivosDte
+        ResumenTributario resumen = contexto.ResumenesTributarios
             .AsNoTracking()
-            .SingleOrDefault(archivo =>
-                archivo.DocumentoDteId == documentoDteId);
+            .SingleOrDefault(resumen =>
+                resumen.DocumentoDteId == documentoDteId)
+            ?? throw new InvalidOperationException(
+                "El DTE no tiene un resumen tributario almacenado.");
 
-        decimal iva = archivo is null
-            ? 0
-            : LeerValorResumen(archivo.JsonOriginal, "totalIva");
-
-        decimal totalOperacion = archivo is null
-            ? 0
-            : LeerValorResumen(
-                archivo.JsonOriginal,
-                "montoTotalOperacion");
-
-        if (totalOperacion == 0 && archivo is not null)
-        {
-            totalOperacion = LeerValorResumen(
-                archivo.JsonOriginal,
-                "totalPagar");
-        }
-
-        if (totalOperacion == 0)
-        {
-            totalOperacion =
-                baseGravada + montoExento + montoNoSujeto + iva;
-        }
+        decimal iva = resumen.TotalIva ?? 0;
+        decimal totalOperacion =
+            resumen.MontoTotalOperacion ??
+            resumen.TotalPagar ??
+            baseGravada + montoExento + montoNoSujeto + iva;
+        decimal signo = documento.TipoDte.Trim() == "05" ? -1 : 1;
 
         bool esCompra = tipoLibro == TipoLibroIva.Compras;
 
@@ -144,18 +204,42 @@ public static class ServicioLibroIva
             tipoLibro == TipoLibroIva.VentasContribuyentes ||
             tipoLibro == TipoLibroIva.VentasConsumidorFinal;
 
+        if (documentoRelacionado is not null)
+        {
+            documento.DocumentoRelacionadoId =
+                documentoRelacionado.DocumentoDteId;
+
+            bool referenciaExiste = contexto.DteReferencias.Any(referencia =>
+                referencia.DocumentoDteOrigenId == documentoDteId &&
+                referencia.DocumentoDteReferenciadoId ==
+                    documentoRelacionado.DocumentoDteId);
+
+            if (!referenciaExiste)
+            {
+                contexto.DteReferencias.Add(new DteReferencia
+                {
+                    DocumentoDteOrigenId = documentoDteId,
+                    DocumentoDteReferenciadoId =
+                        documentoRelacionado.DocumentoDteId,
+                    TipoReferencia = documento.TipoDte == "05"
+                        ? "Nota de crédito"
+                        : "Nota de débito"
+                });
+            }
+        }
+
         var registroNuevo = new RegistroLibroIva
         {
             DocumentoDteId = documentoDteId,
             PeriodoContableId = periodoContableId,
             TipoLibro = tipoLibro,
             FechaRegistro = documento.FechaEmision.Date,
-            BaseGravada = baseGravada,
-            MontoExento = montoExento,
-            MontoNoSujeto = montoNoSujeto,
-            CreditoFiscal = esCompra ? iva : 0,
-            DebitoFiscal = esVenta ? iva : 0,
-            TotalOperacion = totalOperacion,
+            BaseGravada = baseGravada * signo,
+            MontoExento = montoExento * signo,
+            MontoNoSujeto = montoNoSujeto * signo,
+            CreditoFiscal = esCompra ? iva * signo : 0,
+            DebitoFiscal = esVenta ? iva * signo : 0,
+            TotalOperacion = totalOperacion * signo,
             Estado = EstadoRegistroIva.Vigente
         };
 
@@ -165,46 +249,104 @@ public static class ServicioLibroIva
         return registroNuevo;
     }
 
-    private static decimal LeerValorResumen(
-        string jsonOriginal,
-        string nombreCampo)
+    public static TipoLibroIva ObtenerTipoLibroSugerido(
+        int empresaId,
+        int documentoDteId,
+        int? documentoRelacionadoId = null)
     {
-        using JsonDocument json = JsonDocument.Parse(jsonOriginal);
+        using var contexto = new ContabilidadDbContext();
 
-        if (!json.RootElement.TryGetProperty(
-                "resumen",
-                out JsonElement resumen) ||
-            resumen.ValueKind != JsonValueKind.Object)
+        DocumentoDte? documento = contexto.DocumentosDte
+            .AsNoTracking()
+            .SingleOrDefault(documento =>
+                documento.DocumentoDteId == documentoDteId &&
+                documento.EmpresaId == empresaId);
+
+        if (documento is null)
         {
-            return 0;
+            throw new InvalidOperationException(
+                "No se encontró el DTE seleccionado.");
         }
 
-        if (!resumen.TryGetProperty(
-                nombreCampo,
-                out JsonElement valor))
+        return ResolverTipoLibro(
+            contexto,
+            documento,
+            documentoRelacionadoId,
+            out _);
+    }
+
+    private static TipoLibroIva ResolverTipoLibro(
+        ContabilidadDbContext contexto,
+        DocumentoDte documento,
+        int? documentoRelacionadoId,
+        out DocumentoDte? documentoRelacionado)
+    {
+        documentoRelacionado = null;
+        string tipoDte = documento.TipoDte.Trim();
+
+        if (EsNotaAjuste(tipoDte))
         {
-            return 0;
+            int? idRelacionado =
+                documentoRelacionadoId ?? documento.DocumentoRelacionadoId;
+
+            if (idRelacionado is null)
+            {
+                throw new InvalidOperationException(
+                    "Selecciona el DTE original registrado antes de agregar esta nota.");
+            }
+
+            int relacionadoId = idRelacionado.Value;
+            documentoRelacionado = contexto.DocumentosDte
+                .SingleOrDefault(original =>
+                    original.DocumentoDteId == relacionadoId &&
+                    original.EmpresaId == documento.EmpresaId);
+
+            if (documentoRelacionado is null ||
+                documentoRelacionado.RolEmpresa != documento.RolEmpresa ||
+                EsNotaAjuste(documentoRelacionado.TipoDte))
+            {
+                throw new InvalidOperationException(
+                    "El DTE original debe pertenecer a la misma empresa y tener el mismo rol; no puede ser otra nota de ajuste.");
+            }
+
+            int idDocumentoOriginal = documentoRelacionado.DocumentoDteId;
+            RegistroLibroIva? registroOriginal =
+                contexto.RegistrosLibroIva
+                    .AsNoTracking()
+                    .SingleOrDefault(registro =>
+                        registro.DocumentoDteId ==
+                            idDocumentoOriginal &&
+                        registro.Estado == EstadoRegistroIva.Vigente);
+
+            if (registroOriginal is null)
+            {
+                throw new InvalidOperationException(
+                    "Registra primero el DTE original en un Libro IVA vigente.");
+            }
+
+            return registroOriginal.TipoLibro;
         }
 
-        string texto = valor.ValueKind == JsonValueKind.String
-            ? valor.GetString() ?? string.Empty
-            : valor.ToString();
-
-        if (decimal.TryParse(
-                texto,
-                NumberStyles.Number,
-                CultureInfo.InvariantCulture,
-                out decimal resultado))
+        return (tipoDte, documento.RolEmpresa) switch
         {
-            return resultado;
-        }
+            ("01", RolEmpresaDte.Emisor) =>
+                TipoLibroIva.VentasConsumidorFinal,
+            ("03", RolEmpresaDte.Emisor) =>
+                TipoLibroIva.VentasContribuyentes,
+            ("14", RolEmpresaDte.Receptor) =>
+                TipoLibroIva.SujetosExcluidos,
+            ("01" or "03", RolEmpresaDte.Receptor) =>
+                TipoLibroIva.Compras,
+            (_, RolEmpresaDte.NoDeterminado) =>
+                throw new InvalidOperationException(
+                    "No se puede clasificar el DTE porque no se determinó si la empresa es emisor o receptor."),
+            _ => throw new InvalidOperationException(
+                $"El tipo de DTE {tipoDte} no está contemplado para los libros de IVA disponibles.")
+        };
+    }
 
-        return decimal.TryParse(
-            texto,
-            NumberStyles.Number,
-            CultureInfo.CurrentCulture,
-            out resultado)
-            ? resultado
-            : 0;
+    private static bool EsNotaAjuste(string tipoDte)
+    {
+        return tipoDte.Trim() is "05" or "06";
     }
 }
