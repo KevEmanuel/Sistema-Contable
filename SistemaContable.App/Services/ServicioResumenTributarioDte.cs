@@ -13,7 +13,7 @@ public static class ServicioResumenTributarioDte
             return totalIva;
         }
 
-        if (!resumen.TryGetProperty("tributos", out JsonElement tributos) ||
+        if (!TryGetProperty(resumen, "tributos", out JsonElement tributos) ||
             tributos.ValueKind != JsonValueKind.Array)
         {
             return null;
@@ -23,7 +23,7 @@ public static class ServicioResumenTributarioDte
         bool encontroIva = false;
         foreach (JsonElement tributo in tributos.EnumerateArray())
         {
-            if (!tributo.TryGetProperty("codigo", out JsonElement codigo) ||
+            if (!TryGetProperty(tributo, "codigo", out JsonElement codigo) ||
                 !string.Equals(
                     codigo.ToString().Trim(),
                     "20",
@@ -32,7 +32,7 @@ public static class ServicioResumenTributarioDte
                 continue;
             }
 
-            if (!tributo.TryGetProperty("valor", out JsonElement valor) ||
+            if (!TryGetProperty(tributo, "valor", out JsonElement valor) ||
                 !TryLeerImporte(valor, out decimal importe))
             {
                 throw new ArgumentException(
@@ -46,12 +46,58 @@ public static class ServicioResumenTributarioDte
         return encontroIva ? total : null;
     }
 
-    private static decimal? LeerImporte(JsonElement objeto, string nombre)
+    public static decimal? LeerTotalIva(string jsonOriginal)
     {
-        return objeto.TryGetProperty(nombre, out JsonElement valor) &&
+        using JsonDocument json = JsonDocument.Parse(jsonOriginal);
+        JsonElement resumen = ObtenerResumen(json.RootElement);
+        return LeerTotalIva(resumen);
+    }
+
+    public static decimal? LeerImporte(
+        JsonElement objeto,
+        string nombre)
+    {
+        return TryGetProperty(objeto, nombre, out JsonElement valor) &&
                TryLeerImporte(valor, out decimal importe)
             ? importe
             : null;
+    }
+
+    public static decimal? LeerImporte(
+        string jsonOriginal,
+        string nombre)
+    {
+        using JsonDocument json = JsonDocument.Parse(jsonOriginal);
+        return LeerImporte(ObtenerResumen(json.RootElement), nombre);
+    }
+
+    private static JsonElement ObtenerResumen(JsonElement raiz) =>
+        TryGetProperty(raiz, "resumen", out JsonElement resumen)
+            ? resumen
+            : raiz;
+
+    private static bool TryGetProperty(
+        JsonElement objeto,
+        string nombre,
+        out JsonElement valor)
+    {
+        if (objeto.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty propiedad in objeto.EnumerateObject())
+            {
+                if (string.Equals(
+                        propiedad.Name,
+                        nombre,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    valor = propiedad.Value;
+                    return true;
+                }
+            }
+        }
+
+        valor = default;
+        return false;
     }
 
     private static bool TryLeerImporte(JsonElement valor, out decimal importe)

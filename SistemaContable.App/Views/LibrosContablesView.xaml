@@ -90,7 +90,7 @@
 
                     <DockPanel Grid.Row="0"
                                Margin="0,0,0,8">
-                        <Button Content="Exportar Diario CSV"
+                        <Button Content="Exportar Diario"
                                 Width="160"
                                 Height="30"
                                 HorizontalAlignment="Right"
@@ -155,7 +155,7 @@
 
                     <DockPanel Grid.Row="0"
                                Margin="0,0,0,8">
-                        <Button Content="Exportar Mayor CSV"
+                        <Button Content="Exportar Mayor"
                                 Width="160"
                                 Height="30"
                                 HorizontalAlignment="Right"

@@ -7,46 +7,132 @@
         <vm:LoginViewModel />
     </UserControl.DataContext>
 
-    <Grid Background="#F5F7FA">
-        <Border Width="420"
-                Padding="35"
+    <UserControl.Resources>
+        <Style x:Key="LoginField" TargetType="Control">
+            <Setter Property="Height" Value="46" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="#1F2937" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D8E0EA" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#EAF1FB" Offset="0" />
+                <GradientStop Color="#F7F9FC" Offset="0.55" />
+                <GradientStop Color="#E5ECF7" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Border Width="430"
+                Padding="38"
                 Background="White"
-                BorderBrush="#D0D7DE"
-                BorderThickness="1"
-                CornerRadius="8"
+                CornerRadius="18"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="28"
+                                  ShadowDepth="8"
+                                  Direction="270"
+                                  Opacity="0.14"
+                                  Color="#243B5A" />
+            </Border.Effect>
 
             <StackPanel>
+                <Border Width="66"
+                        Height="66"
+                        Margin="0,0,0,18"
+                        CornerRadius="33"
+                        Background="#EAF2FF"
+                        HorizontalAlignment="Center">
+                    <TextBlock Text="DTE"
+                               FontSize="19"
+                               FontWeight="Bold"
+                               Foreground="#2457A6"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextAlignment="Center" />
+                </Border>
+
                 <TextBlock Text="Sistema Contable DTE"
-                           FontSize="26"
+                           FontSize="24"
                            FontWeight="Bold"
-                           HorizontalAlignment="Center" />
-
-                <TextBlock Text="Iniciar sesión"
-                           FontSize="18"
-                           Margin="0,8,0,25"
+                           Foreground="#172B4D"
                            HorizontalAlignment="Center"
-                           Foreground="DimGray" />
+                           TextAlignment="Center" />
 
-                <TextBlock Text="Correo electrónico" />
+                <TextBlock Text="Inicia sesión para continuar"
+                           FontSize="14"
+                           Margin="0,8,0,28"
+                           Foreground="#68778D"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center" />
+
+                <TextBlock Text="Correo electrónico"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="#344563" />
                 <TextBox Text="{Binding Correo, UpdateSourceTrigger=PropertyChanged}"
-                         Height="30"
-                         Margin="0,5,0,15" />
+                         Style="{StaticResource LoginField}"
+                         Margin="0,7,0,18" />
 
-                <TextBlock Text="Contraseña" />
+                <TextBlock Text="Contraseña"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="#344563" />
                 <PasswordBox x:Name="Contrasena"
-                             Height="30"
-                             Margin="0,5,0,20" />
+                             Style="{StaticResource LoginField}"
+                             Margin="0,7,0,18" />
 
                 <TextBlock Text="{Binding Mensaje}"
-                           Foreground="DarkRed"
+                           MinHeight="0"
+                           Foreground="#B42318"
                            TextWrapping="Wrap"
                            Margin="0,0,0,12" />
 
                 <Button Content="Iniciar sesión"
-                        Height="35"
-                        Click="IniciarSesion_Click" />
+                        Height="46"
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        Foreground="White"
+                        Background="#2457A6"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="IniciarSesion_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ButtonBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="9">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonBorder"
+                                            Property="Background"
+                                            Value="#1D478A" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="ButtonBorder"
+                                            Property="Background"
+                                            Value="#17396F" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="ButtonBorder"
+                                            Property="Opacity"
+                                            Value="0.6" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

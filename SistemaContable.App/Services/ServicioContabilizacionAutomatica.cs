@@ -112,12 +112,85 @@ public static class ServicioContabilizacionAutomatica
             .ToList();
     }
 
+    public static PartidaContable? CrearBorradorConReglaAplicable(
+        int empresaId,
+        int usuarioId,
+        int periodoContableId,
+        int documentoDteId)
+    {
+        DocumentoDte? documento;
+        using (var contexto = new ContabilidadDbContext())
+        {
+            documento = contexto.DocumentosDte
+                .AsNoTracking()
+                .SingleOrDefault(item =>
+                    item.DocumentoDteId == documentoDteId &&
+                    item.EmpresaId == empresaId);
+        }
+
+        if (documento is null ||
+            documento.Estado != EstadoDocumentoDte.Validado)
+        {
+            throw new InvalidOperationException(
+                "Solo se pueden preparar DTE validados.");
+        }
+
+        List<ReglaContable> reglas =
+            ObtenerReglasVigentes(empresaId, documento);
+        if (reglas.Count == 0)
+        {
+            return null;
+        }
+
+        if (reglas.Count > 1)
+        {
+            throw new InvalidOperationException(
+                $"Hay {reglas.Count} reglas vigentes que aplican al DTE {documento.TipoDte}. Deja una sola regla aplicable antes de generar el borrador.");
+        }
+
+        return CrearBorrador(
+            empresaId,
+            usuarioId,
+            periodoContableId,
+            documentoDteId,
+            reglas[0].ReglaContableId);
+    }
+
+    public static PartidaContable CrearBorrador(
+        int empresaId,
+        int usuarioId,
+        int periodoContableId,
+        int documentoDteId,
+        int reglaContableId) =>
+        CrearPartidaDesdeRegla(
+            empresaId,
+            usuarioId,
+            periodoContableId,
+            documentoDteId,
+            reglaContableId,
+            contabilizar: false);
+
     public static PartidaContable Contabilizar(
         int empresaId,
         int usuarioId,
         int periodoContableId,
         int documentoDteId,
-        int reglaContableId)
+        int reglaContableId) =>
+        CrearPartidaDesdeRegla(
+            empresaId,
+            usuarioId,
+            periodoContableId,
+            documentoDteId,
+            reglaContableId,
+            contabilizar: true);
+
+    private static PartidaContable CrearPartidaDesdeRegla(
+        int empresaId,
+        int usuarioId,
+        int periodoContableId,
+        int documentoDteId,
+        int reglaContableId,
+        bool contabilizar)
     {
         using var contexto = new ContabilidadDbContext();
 
@@ -279,9 +352,11 @@ public static class ServicioContabilizacionAutomatica
             Fecha = documento.FechaEmision.Date,
             Glosa = $"DTE {documento.TipoDte} - {documento.NumeroControl}",
             TipoOrigen = TipoOrigenPartida.Dte,
-            Estado = EstadoPartidaContable.Contabilizada,
+            Estado = contabilizar
+                ? EstadoPartidaContable.Contabilizada
+                : EstadoPartidaContable.Borrador,
             CreadoPorId = usuarioId,
-            AprobadoPorId = usuarioId,
+            AprobadoPorId = contabilizar ? usuarioId : null,
             CreadoEn = DateTime.Now
         };
 
@@ -294,13 +369,39 @@ public static class ServicioContabilizacionAutomatica
 
         contexto.PartidasContables.Add(partidaNueva);
 
-        documento.Estado = EstadoDocumentoDte.Contabilizado;
-        ServicioLibroIva.GenerarDesdePartidaContabilizada(
-            contexto,
-            documento,
-            periodoContableId);
+        if (contabilizar)
+        {
+            documento.Estado = EstadoDocumentoDte.Contabilizado;
+            ServicioLibroIva.GenerarDesdePartidaContabilizada(
+                contexto,
+                documento,
+                periodoContableId);
+        }
 
         contexto.SaveChanges();
+        if (!contabilizar)
+        {
+            contexto.BitacorasAuditoria.Add(new BitacoraAuditoria
+            {
+                EmpresaId = empresaId,
+                UsuarioId = usuarioId,
+                Entidad = nameof(PartidaContable),
+                IdEntidad = partidaNueva.PartidaContableId.ToString(),
+                Accion = "Crear borrador contable desde regla DTE",
+                ValoresNuevos = JsonSerializer.Serialize(new
+                {
+                    partidaNueva.NumeroPartida,
+                    partidaNueva.DocumentoDteId,
+                    partidaNueva.ReglaContableId,
+                    documento.TipoDte,
+                    Debe = detalles.Sum(detalle => detalle.Debe),
+                    Haber = detalles.Sum(detalle => detalle.Haber)
+                }),
+                FechaHora = DateTime.Now
+            });
+            contexto.SaveChanges();
+        }
+
         transaccion.Commit();
 
         return partidaNueva;

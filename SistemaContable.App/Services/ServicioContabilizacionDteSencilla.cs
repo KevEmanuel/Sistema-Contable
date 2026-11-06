@@ -250,6 +250,18 @@ public static class ServicioContabilizacionDteSencilla
         int periodoContableId,
         int documentoDteId)
     {
+        PartidaContable? borradorConRegla =
+            ServicioContabilizacionAutomatica
+                .CrearBorradorConReglaAplicable(
+                    empresaId,
+                    usuarioId,
+                    periodoContableId,
+                    documentoDteId);
+        if (borradorConRegla is not null)
+        {
+            return borradorConRegla;
+        }
+
         using var contexto = new ContabilidadDbContext();
         using var transaccion = contexto.Database.BeginTransaction();
 
@@ -340,15 +352,16 @@ public static class ServicioContabilizacionDteSencilla
             item.VentaGravada + item.VentaExenta + item.VentaNoSujeta);
 
         ResumenTributario? resumen = documento.ResumenTributario;
-        decimal? totalIva = resumen?.TotalIva;
-        if (!totalIva.HasValue && resumen is not null)
-        {
-            using JsonDocument resumenJson =
-                JsonDocument.Parse(resumen.JsonOriginal);
-            totalIva = ServicioResumenTributarioDte.LeerTotalIva(
-                resumenJson.RootElement);
-        }
+        ArchivoDte? archivo = contexto.ArchivosDte
+            .AsNoTracking()
+            .SingleOrDefault(item =>
+                item.DocumentoDteId == documentoDteId);
+        string? jsonResumen = resumen?.JsonOriginal;
+        string? jsonDte = archivo?.JsonOriginal;
 
+        decimal? totalIva = resumen?.TotalIva ??
+            LeerTotalIvaJson(jsonResumen) ??
+            LeerTotalIvaJson(jsonDte);
         if (!totalIva.HasValue && lineasDte.Any(item =>
                 item.VentaGravada != 0))
         {
@@ -357,8 +370,13 @@ public static class ServicioContabilizacionDteSencilla
         }
 
         decimal iva = totalIva ?? 0;
-        decimal? totalDocumento = resumen?.TotalPagar ??
-                                 resumen?.MontoTotalOperacion;
+        decimal? montoTotalOperacion = resumen?.MontoTotalOperacion ??
+            LeerImporteJson(jsonResumen, "montoTotalOperacion") ??
+            LeerImporteJson(jsonDte, "montoTotalOperacion");
+        decimal? totalPagar = resumen?.TotalPagar ??
+            LeerImporteJson(jsonResumen, "totalPagar") ??
+            LeerImporteJson(jsonDte, "totalPagar");
+        decimal? totalDocumento = totalPagar ?? montoTotalOperacion;
 
         if (totalDocumento is null || totalDocumento <= 0)
         {
@@ -367,14 +385,13 @@ public static class ServicioContabilizacionDteSencilla
         }
 
         decimal total = decimal.Round(totalDocumento.Value, 2);
-        decimal totalComponentes = decimal.Round(baseOperacion + iva, 2);
+        decimal baseContable = decimal.Round(total - iva, 2);
+        decimal otrosComponentes = decimal.Round(baseContable - baseOperacion, 2);
 
-        if (decimal.Round(baseOperacion, 2) <= 0 ||
-            decimal.Round(iva, 2) < 0 ||
-            totalComponentes != total)
+        if (baseContable <= 0 || decimal.Round(iva, 2) < 0)
         {
             throw new InvalidOperationException(
-                "Los importes del DTE incluyen componentes que esta configuración sencilla no puede identificar. El documento requiere revisión manual.");
+                "Los importes extraídos del DTE no permiten formar un asiento positivo y balanceado. Revisa el resumen tributario y las cuentas configuradas.");
         }
 
         int? cuentaTerceroId = esVenta
@@ -407,9 +424,13 @@ public static class ServicioContabilizacionDteSencilla
         detalles.Add(new DetallePartida
         {
             CuentaContableId = cuentaOperacionId.Value,
-            Concepto = esVenta ? "Venta según DTE" : "Compra según DTE",
-            Debe = esVenta ? 0 : baseOperacion,
-            Haber = esVenta ? baseOperacion : 0
+            Concepto = Math.Abs(otrosComponentes) < 0.01m
+                ? esVenta ? "Venta según DTE" : "Compra según DTE"
+                : esVenta
+                    ? "Venta y otros componentes netos según DTE"
+                    : "Compra y otros componentes netos según DTE",
+            Debe = esVenta ? 0 : baseContable,
+            Haber = esVenta ? baseContable : 0
         });
 
         if (iva > 0)
@@ -485,6 +506,9 @@ public static class ServicioContabilizacionDteSencilla
                 documento.TipoDte,
                 Operacion = documento.OperacionContable.ToString(),
                 Total = total,
+                BaseDetalle = baseOperacion,
+                OtrosComponentesNetos = otrosComponentes,
+                Iva = iva,
                 Debe = detalles.Sum(item => item.Debe),
                 Haber = detalles.Sum(item => item.Haber)
             }),
@@ -494,5 +518,21 @@ public static class ServicioContabilizacionDteSencilla
         transaccion.Commit();
 
         return partida;
+    }
+
+    private static decimal? LeerTotalIvaJson(string? jsonOriginal) =>
+        string.IsNullOrWhiteSpace(jsonOriginal)
+            ? null
+            : ServicioResumenTributarioDte.LeerTotalIva(jsonOriginal);
+
+    private static decimal? LeerImporteJson(
+        string? jsonOriginal,
+        string nombre)
+    {
+        return string.IsNullOrWhiteSpace(jsonOriginal)
+            ? null
+            : ServicioResumenTributarioDte.LeerImporte(
+                jsonOriginal,
+                nombre);
     }
 }

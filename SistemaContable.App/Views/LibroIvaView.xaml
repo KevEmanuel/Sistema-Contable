@@ -111,15 +111,34 @@
 
         <Grid Grid.Row="2"
               Margin="0,0,0,10">
-            <TextBlock Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
-                       TextWrapping="Wrap" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-            <Button Content="Actualizar"
-                    Width="120"
-                    Height="28"
-                    HorizontalAlignment="Right"
-                    Command="{Binding CargarCommand}" />
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Mensaje}"
+                       Foreground="DarkRed"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal">
+                <Button Content="Actualizar"
+                        Width="100"
+                        Height="28"
+                        Margin="0,0,8,0"
+                        Command="{Binding CargarCommand}" />
+                <Button Content="Exportar compras"
+                        Width="130"
+                        Height="28"
+                        Margin="0,0,8,0"
+                        Click="ExportarCompras_Click" />
+                <Button Content="Exportar ventas"
+                        Width="120"
+                        Height="28"
+                        Click="ExportarVentas_Click" />
+            </StackPanel>
         </Grid>
 
         <DataGrid Grid.Row="3"

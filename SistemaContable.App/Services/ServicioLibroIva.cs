@@ -42,15 +42,15 @@ public static class ServicioLibroIva
             null,
             out _);
 
-        decimal baseGravada = contexto.DetallesDte
+        decimal baseGravadaDetalle = contexto.DetallesDte
             .Where(detalle =>
                 detalle.DocumentoDteId == documento.DocumentoDteId)
             .Sum(detalle => (decimal?)detalle.VentaGravada) ?? 0;
-        decimal montoExento = contexto.DetallesDte
+        decimal montoExentoDetalle = contexto.DetallesDte
             .Where(detalle =>
                 detalle.DocumentoDteId == documento.DocumentoDteId)
             .Sum(detalle => (decimal?)detalle.VentaExenta) ?? 0;
-        decimal montoNoSujeto = contexto.DetallesDte
+        decimal montoNoSujetoDetalle = contexto.DetallesDte
             .Where(detalle =>
                 detalle.DocumentoDteId == documento.DocumentoDteId)
             .Sum(detalle => (decimal?)detalle.VentaNoSujeta) ?? 0;
@@ -61,9 +61,32 @@ public static class ServicioLibroIva
             ?? throw new InvalidOperationException(
                 "El DTE no tiene un resumen tributario para crear su libro de ventas o compras.");
 
-        decimal iva = resumen.TotalIva ?? 0;
+        string? jsonDte = contexto.ArchivosDte
+            .AsNoTracking()
+            .Where(item => item.DocumentoDteId == documento.DocumentoDteId)
+            .Select(item => item.JsonOriginal)
+            .SingleOrDefault();
+
+        decimal baseGravada = resumen.TotalGravada ??
+            LeerImporteJson(resumen.JsonOriginal, jsonDte, "totalGravada") ??
+            baseGravadaDetalle;
+        decimal montoExento = resumen.TotalExenta ??
+            LeerImporteJson(resumen.JsonOriginal, jsonDte, "totalExenta") ??
+            montoExentoDetalle;
+        decimal montoNoSujeto = resumen.TotalNoSujeta ??
+            LeerImporteJson(resumen.JsonOriginal, jsonDte, "totalNoSuj") ??
+            montoNoSujetoDetalle;
+        decimal iva = resumen.TotalIva ??
+            LeerTotalIvaJson(resumen.JsonOriginal) ??
+            LeerTotalIvaJson(jsonDte) ??
+            0;
         decimal totalOperacion = resumen.MontoTotalOperacion ??
             resumen.TotalPagar ??
+            LeerImporteJson(
+                resumen.JsonOriginal,
+                jsonDte,
+                "montoTotalOperacion") ??
+            LeerImporteJson(resumen.JsonOriginal, jsonDte, "totalPagar") ??
             baseGravada + montoExento + montoNoSujeto + iva;
 
         contexto.RegistrosLibroIva.Add(new RegistroLibroIva
@@ -84,6 +107,31 @@ public static class ServicioLibroIva
             TotalOperacion = totalOperacion,
             Estado = EstadoRegistroIva.Vigente
         });
+    }
+
+    private static decimal? LeerTotalIvaJson(string? jsonOriginal) =>
+        string.IsNullOrWhiteSpace(jsonOriginal)
+            ? null
+            : ServicioResumenTributarioDte.LeerTotalIva(jsonOriginal);
+
+    private static decimal? LeerImporteJson(
+        string? jsonResumen,
+        string? jsonDte,
+        string nombre)
+    {
+        return LeerImporteJson(jsonResumen, nombre) ??
+               LeerImporteJson(jsonDte, nombre);
+    }
+
+    private static decimal? LeerImporteJson(
+        string? jsonOriginal,
+        string nombre)
+    {
+        return string.IsNullOrWhiteSpace(jsonOriginal)
+            ? null
+            : ServicioResumenTributarioDte.LeerImporte(
+                jsonOriginal,
+                nombre);
     }
 
     public static List<DocumentoDte> ObtenerDocumentosValidados(
