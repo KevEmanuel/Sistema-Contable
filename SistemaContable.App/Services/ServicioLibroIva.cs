@@ -8,6 +8,84 @@ namespace SistemaContableDTE.Services;
 
 public static class ServicioLibroIva
 {
+    internal static void GenerarDesdePartidaContabilizada(
+        ContabilidadDbContext contexto,
+        DocumentoDte documento,
+        int periodoContableId)
+    {
+        string tipoDte = documento.TipoDte.Trim();
+        if (tipoDte is not ("01" or "03"))
+        {
+            return;
+        }
+
+        List<RegistroLibroIva> registrosExistentes =
+            contexto.RegistrosLibroIva
+                .Where(registro =>
+                    registro.DocumentoDteId == documento.DocumentoDteId)
+                .ToList();
+        if (registrosExistentes.Any(registro =>
+                registro.Estado == EstadoRegistroIva.Vigente))
+        {
+            return;
+        }
+
+        if (registrosExistentes.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "El DTE ya tiene un registro de ventas o compras no vigente; revisa ese registro antes de contabilizarlo.");
+        }
+
+        TipoLibroIva tipoLibro = ResolverTipoLibro(
+            contexto,
+            documento,
+            null,
+            out _);
+
+        decimal baseGravada = contexto.DetallesDte
+            .Where(detalle =>
+                detalle.DocumentoDteId == documento.DocumentoDteId)
+            .Sum(detalle => (decimal?)detalle.VentaGravada) ?? 0;
+        decimal montoExento = contexto.DetallesDte
+            .Where(detalle =>
+                detalle.DocumentoDteId == documento.DocumentoDteId)
+            .Sum(detalle => (decimal?)detalle.VentaExenta) ?? 0;
+        decimal montoNoSujeto = contexto.DetallesDte
+            .Where(detalle =>
+                detalle.DocumentoDteId == documento.DocumentoDteId)
+            .Sum(detalle => (decimal?)detalle.VentaNoSujeta) ?? 0;
+
+        ResumenTributario resumen = contexto.ResumenesTributarios
+            .SingleOrDefault(item =>
+                item.DocumentoDteId == documento.DocumentoDteId)
+            ?? throw new InvalidOperationException(
+                "El DTE no tiene un resumen tributario para crear su libro de ventas o compras.");
+
+        decimal iva = resumen.TotalIva ?? 0;
+        decimal totalOperacion = resumen.MontoTotalOperacion ??
+            resumen.TotalPagar ??
+            baseGravada + montoExento + montoNoSujeto + iva;
+
+        contexto.RegistrosLibroIva.Add(new RegistroLibroIva
+        {
+            DocumentoDteId = documento.DocumentoDteId,
+            PeriodoContableId = periodoContableId,
+            TipoLibro = tipoLibro,
+            FechaRegistro = documento.FechaEmision.Date,
+            BaseGravada = baseGravada,
+            MontoExento = montoExento,
+            MontoNoSujeto = montoNoSujeto,
+            CreditoFiscal = tipoLibro == TipoLibroIva.Compras ? iva : 0,
+            DebitoFiscal = tipoLibro is
+                (TipoLibroIva.VentasContribuyentes or
+                 TipoLibroIva.VentasConsumidorFinal)
+                ? iva
+                : 0,
+            TotalOperacion = totalOperacion,
+            Estado = EstadoRegistroIva.Vigente
+        });
+    }
+
     public static List<DocumentoDte> ObtenerDocumentosValidados(
         int empresaId)
     {
@@ -17,7 +95,8 @@ public static class ServicioLibroIva
             .AsNoTracking()
             .Where(documento =>
                 documento.EmpresaId == empresaId &&
-                documento.Estado == EstadoDocumentoDte.Validado &&
+                (documento.Estado == EstadoDocumentoDte.Validado ||
+                 documento.Estado == EstadoDocumentoDte.Contabilizado) &&
                 !contexto.RegistrosLibroIva.Any(registro =>
                     registro.DocumentoDteId == documento.DocumentoDteId))
             .OrderByDescending(documento => documento.FechaEmision)
@@ -130,10 +209,12 @@ public static class ServicioLibroIva
                 "El DTE seleccionado no pertenece a la empresa.");
         }
 
-        if (documento.Estado != EstadoDocumentoDte.Validado)
+        if (documento.Estado is not
+            (EstadoDocumentoDte.Validado or
+             EstadoDocumentoDte.Contabilizado))
         {
             throw new InvalidOperationException(
-                "Solo los DTE validados pueden generar Libro IVA.");
+                "Solo los DTE validados o contabilizados pueden generar Libro IVA.");
         }
 
         bool yaRegistrado = contexto.RegistrosLibroIva.Any(registro =>

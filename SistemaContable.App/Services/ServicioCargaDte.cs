@@ -22,6 +22,8 @@ public static class ServicioCargaDte
 
         return contexto.DocumentosDte
             .AsNoTracking()
+            .Include(documento => documento.ClienteContable)
+            .Include(documento => documento.Participantes)
             .Where(documento => documento.EmpresaId == empresaId)
             .OrderByDescending(documento => documento.FechaEmision)
             .ThenByDescending(documento => documento.CreadoEn)
@@ -125,7 +127,8 @@ public static class ServicioCargaDte
     public static DocumentoDte ImportarArchivo(
     int empresaId,
     string rutaArchivo,
-    int? usuarioId = null)
+    int? usuarioId = null,
+    int? clienteContableId = null)
     {
         if (!File.Exists(rutaArchivo))
         {
@@ -135,7 +138,11 @@ public static class ServicioCargaDte
 
         string jsonOriginal = File.ReadAllText(rutaArchivo);
 
-        return ImportarJson(empresaId, jsonOriginal, usuarioId);
+        return ImportarJson(
+            empresaId,
+            jsonOriginal,
+            usuarioId,
+            clienteContableId);
     }
     /*cambios
     public static DocumentoDte ImportarJson(
@@ -145,7 +152,8 @@ public static class ServicioCargaDte
     public static DocumentoDte ImportarJson(
     int empresaId,
     string jsonOriginal,
-    int? usuarioId = null)
+    int? usuarioId = null,
+    int? clienteContableId = null)
     {
         if (string.IsNullOrWhiteSpace(jsonOriginal))
         {
@@ -205,10 +213,27 @@ public static class ServicioCargaDte
                 "Este DTE ya fue importado anteriormente.");
         }
 
-        RolEmpresaDte rolEmpresa = DeterminarRolEmpresa(
-            empresa,
-            emisor,
-            receptor);
+        List<ClienteContable> clientes = contexto.ClientesContables
+            .Where(cliente => cliente.EmpresaId == empresaId)
+            .ToList();
+        ClienteContable? clienteSeleccionado = clienteContableId is null
+            ? null
+            : clientes.SingleOrDefault(cliente =>
+                cliente.ClienteContableId == clienteContableId.Value);
+
+        if (clienteContableId.HasValue && clienteSeleccionado is null)
+        {
+            throw new InvalidOperationException(
+                "El cliente seleccionado no pertenece a la empresa activa.");
+        }
+
+        (ClienteContable? clienteDte, RolEmpresaDte rolEmpresa) =
+            DeterminarClienteYRol(
+                empresa,
+                clientes,
+                clienteSeleccionado,
+                emisor,
+                receptor);
 
         string hashSha256 = Convert.ToHexString(
             SHA256.HashData(
@@ -222,6 +247,7 @@ public static class ServicioCargaDte
             CodigoGeneracion = codigoGeneracion,
             NumeroControl = numeroControl,
             TipoDte = tipoDte,
+            ClienteContableId = clienteDte?.ClienteContableId,
             VersionSchema = versionSchema,
             FechaEmision = fechaEmision,
             HoraEmision = horaEmision,
@@ -232,11 +258,15 @@ public static class ServicioCargaDte
 
         contexto.DocumentosDte.Add(documentoNuevo);
 
-        Tercero? terceroEmisor = EsLaEmpresa(empresa, emisor)
+        Tercero? terceroEmisor =
+            EsLaEmpresa(empresa, emisor) ||
+            EsCliente(clienteDte, emisor)
             ? null
             : ObtenerOCrearTercero(contexto, empresaId, emisor);
 
-        Tercero? terceroReceptor = EsLaEmpresa(empresa, receptor)
+        Tercero? terceroReceptor =
+            EsLaEmpresa(empresa, receptor) ||
+            EsCliente(clienteDte, receptor)
             ? null
             : ObtenerOCrearTercero(contexto, empresaId, receptor);
 
@@ -349,7 +379,7 @@ public static class ServicioCargaDte
             TotalGravada = LeerDecimalOpcional(resumen, "totalGravada"),
             TotalExenta = LeerDecimalOpcional(resumen, "totalExenta"),
             TotalNoSujeta = LeerDecimalOpcional(resumen, "totalNoSuj"),
-            TotalIva = LeerDecimalOpcional(resumen, "totalIva"),
+            TotalIva = ServicioResumenTributarioDte.LeerTotalIva(resumen),
             MontoTotalOperacion = LeerDecimalOpcional(
                 resumen,
                 "montoTotalOperacion"),
@@ -374,6 +404,90 @@ public static class ServicioCargaDte
         }
 
         return RolEmpresaDte.NoDeterminado;
+    }
+
+    private static (
+        ClienteContable? Cliente,
+        RolEmpresaDte Rol) DeterminarClienteYRol(
+        Empresa empresa,
+        IReadOnlyCollection<ClienteContable> clientes,
+        ClienteContable? clienteSeleccionado,
+        JsonElement emisor,
+        JsonElement receptor)
+    {
+        if (clienteSeleccionado is not null)
+        {
+            bool esEmisor = EsCliente(clienteSeleccionado, emisor);
+            bool esReceptor = EsCliente(clienteSeleccionado, receptor);
+
+            if (esEmisor == esReceptor)
+            {
+                throw new InvalidOperationException(
+                    esEmisor
+                        ? "El cliente coincide con el emisor y receptor del DTE."
+                        : "El NIT/NRC del cliente seleccionado no aparece en el emisor ni receptor del JSON.");
+            }
+
+            return (
+                clienteSeleccionado,
+                esEmisor ? RolEmpresaDte.Emisor : RolEmpresaDte.Receptor);
+        }
+
+        var coincidencias = clientes
+            .Select(cliente => new
+            {
+                Cliente = cliente,
+                EsEmisor = EsCliente(cliente, emisor),
+                EsReceptor = EsCliente(cliente, receptor)
+            })
+            .Where(item => item.EsEmisor != item.EsReceptor)
+            .ToList();
+
+        if (coincidencias.Count == 1)
+        {
+            var coincidencia = coincidencias[0];
+            return (
+                coincidencia.Cliente,
+                coincidencia.EsEmisor
+                    ? RolEmpresaDte.Emisor
+                    : RolEmpresaDte.Receptor);
+        }
+
+        if (coincidencias.Count > 1)
+        {
+            return (null, RolEmpresaDte.NoDeterminado);
+        }
+
+        return (
+            null,
+            DeterminarRolEmpresa(empresa, emisor, receptor));
+    }
+
+    private static bool EsCliente(
+        ClienteContable? cliente,
+        JsonElement participante)
+    {
+        if (cliente is null)
+        {
+            return false;
+        }
+
+        string nitCliente =
+            ServicioClientesContables.NormalizarIdentificacion(cliente.Nit);
+        string nitDte = ServicioClientesContables.NormalizarIdentificacion(
+            ObtenerNit(participante));
+
+        if (nitCliente.Length > 0 && nitCliente == nitDte)
+        {
+            return true;
+        }
+
+        string nrcCliente =
+            ServicioClientesContables.NormalizarIdentificacion(cliente.Nrc);
+        string nrcDte = ServicioClientesContables.NormalizarIdentificacion(
+            LeerTexto(participante, "nrc"));
+
+        return nrcCliente.Length > 0 && nrcCliente == nrcDte;
     }
 
     private static bool EsLaEmpresa(

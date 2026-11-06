@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaContableDTE.Models;
 
@@ -18,6 +19,9 @@ public class CuentaContable
     [Required]
     [StringLength(200)]
     public string Nombre { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string Etiqueta => $"{Codigo} - {Nombre}";
 
     [StringLength(20)]
     public string TipoCuenta { get; set; } = string.Empty;

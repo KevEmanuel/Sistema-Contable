@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Input;
 using SistemaContableDTE.Models;
@@ -19,6 +20,7 @@ public class ValidacionFiscalViewModel : ViewModelBase
     private readonly RelayCommand eliminarEvidenciaCommand;
     private readonly RelayCommand actualizarEventoCommand;
     private readonly RelayCommand eliminarEventoCommand;
+    private readonly RelayCommand consultarEstadoHaciendaCommand;
 
     private DocumentoDte? documentoSeleccionado;
     private EvidenciaFiscal? evidenciaSeleccionada;
@@ -29,11 +31,12 @@ public class ValidacionFiscalViewModel : ViewModelBase
 
     private string? selloRecibido;
     private string? estadoHacienda;
-    private DateTime? fechaProcesamiento = DateTime.Today;
+    private DateTime? fechaProcesamiento;
     private string? codigoMensaje;
     private string? descripcionMensaje;
     private string? observaciones;
     private string? respuestaJson;
+    private bool consultaHaciendaEnCurso;
 
     private string tipoEvento = string.Empty;
     private string estadoEvento = string.Empty;
@@ -68,7 +71,17 @@ public class ValidacionFiscalViewModel : ViewModelBase
         {
             if (EstablecerPropiedad(ref documentoSeleccionado, value))
             {
+                consultarEstadoHaciendaCommand.ActualizarEstado();
                 CargarHistorial();
+
+                if (value is null)
+                {
+                    LimpiarFormularioEvidencia();
+                }
+                else
+                {
+                    CompletarFormularioDesdeDte(value);
+                }
             }
         }
     }
@@ -168,6 +181,18 @@ public class ValidacionFiscalViewModel : ViewModelBase
         set => EstablecerPropiedad(ref respuestaJson, value);
     }
 
+    public bool ConsultaHaciendaEnCurso
+    {
+        get => consultaHaciendaEnCurso;
+        private set
+        {
+            if (EstablecerPropiedad(ref consultaHaciendaEnCurso, value))
+            {
+                consultarEstadoHaciendaCommand.ActualizarEstado();
+            }
+        }
+    }
+
     public string TipoEvento
     {
         get => tipoEvento;
@@ -217,6 +242,8 @@ public class ValidacionFiscalViewModel : ViewModelBase
         eliminarEvidenciaCommand;
     public ICommand ActualizarEventoCommand => actualizarEventoCommand;
     public ICommand EliminarEventoCommand => eliminarEventoCommand;
+    public ICommand ConsultarEstadoHaciendaCommand =>
+        consultarEstadoHaciendaCommand;
 
     public ValidacionFiscalViewModel()
     {
@@ -236,6 +263,10 @@ public class ValidacionFiscalViewModel : ViewModelBase
         eliminarEvidenciaCommand = new RelayCommand(EliminarEvidencia);
         actualizarEventoCommand = new RelayCommand(ActualizarEvento);
         eliminarEventoCommand = new RelayCommand(EliminarEvento);
+        consultarEstadoHaciendaCommand = new RelayCommand(
+            ConsultarEstadoHacienda,
+            _ => DocumentoSeleccionado is not null &&
+                 !ConsultaHaciendaEnCurso);
 
         CargarDocumentos();
     }
@@ -298,6 +329,74 @@ public class ValidacionFiscalViewModel : ViewModelBase
         }
     }
 
+    private void CompletarFormularioDesdeDte(DocumentoDte documento)
+    {
+        LimpiarFormularioEvidencia();
+
+        if (SesionActual.EmpresaId is null)
+        {
+            Mensaje = "No hay una empresa activa en la sesión.";
+            return;
+        }
+
+        try
+        {
+            DatosEvidenciaDte datos =
+                ServicioValidacionFiscal.ObtenerDatosEvidenciaDte(
+                    SesionActual.EmpresaId.Value,
+                    documento.DocumentoDteId);
+
+            FuenteSeleccionada = datos.TieneRespuestaHacienda
+                ? FuenteEvidenciaFiscal.RespuestaRecepcio
+                : FuenteEvidenciaFiscal.CargarRespaldo;
+            SelloRecibido = datos.SelloRecibido;
+            EstadoHacienda = datos.EstadoHacienda;
+            FechaProcesamiento = datos.FechaProcesamiento;
+            CodigoMensaje = datos.CodigoMensaje;
+            DescripcionMensaje = datos.DescripcionMensaje;
+            Observaciones = datos.Observaciones;
+            RespuestaJson = datos.RespuestaJson;
+            EstadoDocumentoSeleccionado =
+                datos.EstadoDocumentoSugerido ??
+                documento.Estado;
+
+            if (datos.TieneRespuestaHacienda)
+            {
+                Mensaje =
+                    "Se completaron los campos disponibles desde la respuesta incluida en el JSON del DTE. Revisa los datos antes de guardar.";
+            }
+            else if (!string.IsNullOrWhiteSpace(datos.SelloRecibido))
+            {
+                Mensaje =
+                    "Se completó el sello desde el JSON del DTE. El estado y la fecha de procesamiento no aparecen en este archivo y no se inventaron.";
+            }
+            else
+            {
+                Mensaje =
+                    "El JSON del DTE no contiene sello ni datos de respuesta de Hacienda; completa la evidencia con la respuesta oficial.";
+            }
+        }
+        catch (Exception error)
+        {
+            Mensaje =
+                $"No se pudieron extraer los datos de evidencia del DTE: {error.Message}";
+        }
+    }
+
+    private void LimpiarFormularioEvidencia()
+    {
+        FuenteSeleccionada = FuenteEvidenciaFiscal.CargarRespaldo;
+        SelloRecibido = null;
+        EstadoHacienda = null;
+        FechaProcesamiento = null;
+        CodigoMensaje = null;
+        DescripcionMensaje = null;
+        Observaciones = null;
+        RespuestaJson = null;
+        EstadoDocumentoSeleccionado =
+            EstadoDocumentoDte.PendienteValidacion;
+    }
+
     private void RegistrarEvidencia(object? parametro)
     {
         if (SesionActual.EmpresaId is null ||
@@ -328,10 +427,22 @@ public class ValidacionFiscalViewModel : ViewModelBase
             bool resultadoAprobado = resultados.All(resultado =>
                 resultado.Resultado == EstadoResultadoValidacionDte.Valida);
 
-            Mensaje = EstadoDocumentoSeleccionado == EstadoDocumentoDte.Validado &&
-                      !resultadoAprobado
-                ? "Evidencia guardada, pero el DTE no se validó. Revisa los resultados registrados."
-                : "Evidencia y resultados de validación registrados correctamente.";
+            bool estadoDeterminadoPorValidacion =
+                EstadoDocumentoSeleccionado is
+                    EstadoDocumentoDte.Importado or
+                    EstadoDocumentoDte.PendienteValidacion or
+                    EstadoDocumentoDte.Validado;
+            EstadoDocumentoDte estadoAplicado =
+                estadoDeterminadoPorValidacion
+                    ? resultadoAprobado
+                        ? EstadoDocumentoDte.Validado
+                        : EstadoDocumentoDte.PendienteValidacion
+                    : EstadoDocumentoSeleccionado;
+            string mensajeResultado = resultadoAprobado
+                ? estadoAplicado == EstadoDocumentoDte.Validado
+                    ? "Validación completada: el DTE cambió a estado Validado."
+                    : $"Validación completada. Se conservó el estado {estadoAplicado} seleccionado."
+                : $"Evidencia guardada, pero la validación no fue aprobada. El estado quedó como {estadoAplicado}; revisa los resultados registrados.";
 
             SelloRecibido = null;
             EstadoHacienda = null;
@@ -343,6 +454,7 @@ public class ValidacionFiscalViewModel : ViewModelBase
             CargarDocumentos();
             DocumentoSeleccionado = Documentos.SingleOrDefault(documento =>
                 documento.DocumentoDteId == documentoId);
+            Mensaje = mensajeResultado;
         }
         catch (Exception error)
         {
@@ -382,6 +494,94 @@ public class ValidacionFiscalViewModel : ViewModelBase
         catch (Exception error)
         {
             Mensaje = error.Message;
+        }
+    }
+
+    private async void ConsultarEstadoHacienda(object? parametro)
+    {
+        if (SesionActual.EmpresaId is null ||
+            DocumentoSeleccionado is null)
+        {
+            Mensaje = "Selecciona un DTE.";
+            return;
+        }
+
+        int empresaId = SesionActual.EmpresaId.Value;
+        int documentoId = DocumentoSeleccionado.DocumentoDteId;
+        DocumentoDte documento = DocumentoSeleccionado;
+
+        ConsultaHaciendaEnCurso = true;
+        Mensaje =
+            "Consultando el estado del DTE en la consulta pública de Hacienda...";
+
+        try
+        {
+            ResultadoConsultaPublicaHacienda consulta =
+                await ServicioConsultaPublicaHacienda.ConsultarAsync(
+                    empresaId,
+                    documento);
+
+            List<ResultadoValidacionDte> resultados =
+                ServicioValidacionFiscal.RegistrarEvidencia(
+                    empresaId,
+                    documentoId,
+                    FuenteEvidenciaFiscal.ConsultaPublica,
+                    consulta.SelloRecibido,
+                    consulta.EstadoHacienda,
+                    consulta.FechaProcesamiento,
+                    consulta.CodigoEstado,
+                    consulta.Descripcion,
+                    consulta.Observaciones,
+                    consulta.RespuestaJson,
+                    consulta.EstadoDocumentoSugerido,
+                    SesionActual.Usuario?.UsuarioId);
+
+            bool validacionLocalAprobada = resultados.All(resultado =>
+                resultado.Resultado ==
+                EstadoResultadoValidacionDte.Valida);
+
+            CargarDocumentos();
+            DocumentoSeleccionado = Documentos.SingleOrDefault(item =>
+                item.DocumentoDteId == documentoId);
+
+            FuenteSeleccionada = FuenteEvidenciaFiscal.ConsultaPublica;
+            EstadoHacienda = consulta.EstadoHacienda;
+            FechaProcesamiento = consulta.FechaProcesamiento;
+            CodigoMensaje = consulta.CodigoEstado;
+            DescripcionMensaje = consulta.Descripcion;
+            Observaciones = consulta.Observaciones;
+            RespuestaJson = consulta.RespuestaJson;
+            SelloRecibido = consulta.SelloRecibido;
+            EstadoDocumentoSeleccionado =
+                DocumentoSeleccionado?.Estado ??
+                consulta.EstadoDocumentoSugerido;
+
+            string detalleLocal = validacionLocalAprobada
+                ? "Las validaciones locales también fueron aprobadas."
+                : "El resultado de Hacienda se guardó; las validaciones locales aún tienen observaciones.";
+            Mensaje =
+                $"Hacienda reporta '{consulta.EstadoHacienda}' " +
+                $"({consulta.CodigoEstado}). Estado local actualizado a " +
+                $"'{DocumentoSeleccionado?.Estado}'. {detalleLocal}";
+        }
+        catch (HttpRequestException error)
+        {
+            Mensaje =
+                $"No fue posible consultar Hacienda: {error.Message}";
+        }
+        catch (TaskCanceledException error)
+        {
+            Mensaje =
+                $"La consulta a Hacienda excedió el tiempo de espera: {error.Message}";
+        }
+        catch (Exception error)
+        {
+            Mensaje =
+                $"No se pudo consultar y registrar el estado de Hacienda: {error.Message}";
+        }
+        finally
+        {
+            ConsultaHaciendaEnCurso = false;
         }
     }
 

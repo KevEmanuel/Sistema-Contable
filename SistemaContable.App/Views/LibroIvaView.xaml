@@ -17,7 +17,7 @@
 
         <Grid Grid.Row="0"
               Margin="0,0,0,20">
-            <TextBlock Text="Libro de IVA"
+            <TextBlock Text="Libros de ventas y compras"
                        FontSize="26"
                        FontWeight="Bold"
                        VerticalAlignment="Center" />
@@ -30,7 +30,7 @@
         </Grid>
 
         <GroupBox Grid.Row="1"
-                  Header="Generar registro desde DTE validado"
+                  Header="Generar registro desde DTE validado o contabilizado"
                   Margin="0,0,0,15">
             <Grid Margin="15">
                 <Grid.RowDefinitions>
@@ -46,7 +46,7 @@
 
                 <StackPanel Grid.Column="0"
                             Margin="0,0,12,0">
-                    <TextBlock Text="DTE validado" />
+                    <TextBlock Text="DTE disponible" />
                     <ComboBox ItemsSource="{Binding DocumentosValidados}"
                               SelectedItem="{Binding DocumentoSeleccionado}"
                               Height="28"

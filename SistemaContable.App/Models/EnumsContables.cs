@@ -21,3 +21,11 @@ public enum EstadoPartidaContable
     Reversada,
     Anulada
 }
+
+public enum OperacionConfiguracionDte
+{
+    PorRolEmpresa,
+    Venta,
+    Compra,
+    RevisionManual
+}

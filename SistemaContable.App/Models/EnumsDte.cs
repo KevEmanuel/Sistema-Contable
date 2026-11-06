@@ -34,7 +34,9 @@ public enum FuenteArchivoDte
 
 public enum FuenteEvidenciaFiscal
 {
-    RespuestaRecepcio,ConsultaPublica, CargarRespaldo
+    RespuestaRecepcio,
+    ConsultaPublica,
+    CargarRespaldo
 }
 
 public enum TipoValidacionDte

@@ -18,6 +18,7 @@ public class ContabilidadDbContext : DbContext
     public DbSet<CuentaContable> CuentasContables { get; set; } = null!;
 
     public DbSet<Tercero> Terceros { get; set; } = null!;
+    public DbSet<ClienteContable> ClientesContables { get; set; } = null!;
     public DbSet<DocumentoDte> DocumentosDte { get; set; } = null!;
     public DbSet<DteParticipante> DteParticipantes { get; set; } = null!;
     public DbSet<ArchivoDte> ArchivosDte { get; set; } = null!;
@@ -30,6 +31,7 @@ public class ContabilidadDbContext : DbContext
 
     public DbSet<ReglaContable> ReglasContables { get; set; } = null!;
     public DbSet<ReglaCuenta> ReglasCuentas { get; set; } = null!;
+    public DbSet<ConfiguracionContableAutomatica> ConfiguracionesContablesAutomaticas { get; set; } = null!;
     public DbSet<PartidaContable> PartidasContables { get; set; } = null!;
     public DbSet<DetallePartida> DetallesPartida { get; set; } = null!;
 
@@ -195,6 +197,68 @@ public class ContabilidadDbContext : DbContext
             .HasForeignKey(x => x.CuentaContableId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<ClienteContable>()
+            .HasOne(x => x.Empresa)
+            .WithMany()
+            .HasForeignKey(x => x.EmpresaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DocumentoDte>()
+            .HasOne(x => x.ClienteContable)
+            .WithMany(x => x.DocumentosDte)
+            .HasForeignKey(x => x.ClienteContableId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne<Empresa>()
+            .WithMany()
+            .HasForeignKey(x => x.EmpresaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .Property(x => x.Operacion)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne(x => x.CuentaClientes)
+            .WithMany()
+            .HasForeignKey(x => x.CuentaClientesId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne(x => x.CuentaVentas)
+            .WithMany()
+            .HasForeignKey(x => x.CuentaVentasId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne(x => x.CuentaIvaDebito)
+            .WithMany()
+            .HasForeignKey(x => x.CuentaIvaDebitoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne(x => x.CuentaProveedores)
+            .WithMany()
+            .HasForeignKey(x => x.CuentaProveedoresId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne(x => x.CuentaCompras)
+            .WithMany()
+            .HasForeignKey(x => x.CuentaComprasId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasOne(x => x.CuentaIvaAcreditable)
+            .WithMany()
+            .HasForeignKey(x => x.CuentaIvaAcreditableId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ConfiguracionContableAutomatica>()
+            .HasIndex(x => new { x.EmpresaId, x.TipoDte })
+            .IsUnique();
+
 
         // Documento relacionado: nota de crédito, invalidación u otra referencia.
         modelBuilder.Entity<DocumentoDte>()
@@ -264,6 +328,10 @@ public class ContabilidadDbContext : DbContext
 
         modelBuilder.Entity<CuentaContable>()
             .HasIndex(x => new { x.EmpresaId, x.Codigo })
+            .IsUnique();
+
+        modelBuilder.Entity<ClienteContable>()
+            .HasIndex(x => new { x.EmpresaId, x.Nit })
             .IsUnique();
 
         modelBuilder.Entity<DocumentoDte>()

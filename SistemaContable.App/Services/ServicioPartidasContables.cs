@@ -560,6 +560,7 @@ public static class ServicioPartidasContables
         PartidaContable? partida = contexto.PartidasContables
             .Include(item => item.PeriodoContable)
             .Include(item => item.Detalles)
+            .Include(item => item.DocumentoDte)
             .SingleOrDefault(item =>
                 item.PartidaContableId == partidaContableId &&
                 item.EmpresaId == empresaId);
@@ -583,6 +584,13 @@ public static class ServicioPartidasContables
                 "No se puede contabilizar una partida de un período cerrado.");
         }
 
+        if (partida.DocumentoDte is not null &&
+            partida.DocumentoDte.Estado != EstadoDocumentoDte.Validado)
+        {
+            throw new InvalidOperationException(
+                "El DTE ya no está validado; revisa su estado antes de contabilizar el borrador.");
+        }
+
         decimal totalDebe = partida.Detalles.Sum(x => x.Debe);
         decimal totalHaber = partida.Detalles.Sum(x => x.Haber);
 
@@ -594,6 +602,28 @@ public static class ServicioPartidasContables
 
         partida.Estado = EstadoPartidaContable.Contabilizada;
         partida.AprobadoPorId = usuarioId;
+
+        if (partida.DocumentoDte is not null)
+        {
+            bool otraPartidaContabilizada = contexto.PartidasContables.Any(
+                item =>
+                    item.DocumentoDteId == partida.DocumentoDteId &&
+                    item.PartidaContableId != partida.PartidaContableId &&
+                    item.Estado == EstadoPartidaContable.Contabilizada);
+
+            if (otraPartidaContabilizada)
+            {
+                throw new InvalidOperationException(
+                    "Este DTE ya tiene una partida contabilizada.");
+            }
+
+            partida.DocumentoDte.Estado =
+                EstadoDocumentoDte.Contabilizado;
+            ServicioLibroIva.GenerarDesdePartidaContabilizada(
+                contexto,
+                partida.DocumentoDte,
+                partida.PeriodoContableId);
+        }
 
         contexto.SaveChanges();
 

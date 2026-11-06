@@ -15,8 +15,6 @@ using SistemaContableDTE.Services;
 
 namespace SistemaContableDTE.ViewModels;
 
-public sealed record OpcionTipoDte(string Codigo, string Descripcion);
-
 public sealed record OpcionRolEmpresa(
     RolEmpresaDte Valor,
     string Descripcion);
@@ -118,10 +116,12 @@ public class ReglasContablesViewModel : ViewModelBase
     private readonly RelayCommand eliminarReglaCommand;
     private readonly RelayCommand actualizarCuentaCommand;
     private readonly RelayCommand eliminarCuentaCommand;
+    private readonly RelayCommand usarDteSeleccionadoCommand;
 
     private ReglaContable? reglaSeleccionada;
+    private DocumentoDte? dteSeleccionadoParaRegla;
     private CuentaContable? cuentaSeleccionada;
-    private OpcionTipoDte? tipoDteSeleccionado;
+    private TipoDteDefinicion? tipoDteSeleccionado;
     private OpcionFormulaContable? formulaSeleccionada;
     private CondicionReglaEditor? condicionSeleccionada;
     private ReglaCuenta? lineaReglaSeleccionada;
@@ -139,6 +139,8 @@ public class ReglasContablesViewModel : ViewModelBase
 
     public ObservableCollection<ReglaContable> Reglas { get; } = new();
 
+    public ObservableCollection<DocumentoDte> DtesValidados { get; } = new();
+
     public ObservableCollection<CuentaContable> CuentasCatalogo { get; }
         = new();
 
@@ -148,21 +150,8 @@ public class ReglasContablesViewModel : ViewModelBase
     public ObservableCollection<CondicionReglaEditor> Condiciones { get; }
         = new();
 
-    public List<OpcionTipoDte> TiposDte { get; } =
-    [
-        new(string.Empty, "Todos los tipos de DTE"),
-        new("01", "Factura"),
-        new("03", "Comprobante de crédito fiscal"),
-        new("04", "Nota de remisión"),
-        new("05", "Nota de crédito"),
-        new("06", "Nota de débito"),
-        new("07", "Comprobante de retención"),
-        new("08", "Comprobante de liquidación"),
-        new("09", "Documento contable de liquidación"),
-        new("11", "Factura de exportación"),
-        new("14", "Factura de sujeto excluido"),
-        new("15", "Comprobante de donación")
-    ];
+    public IReadOnlyList<TipoDteDefinicion> TiposDte =>
+        CatalogoTiposDte.ParaReglas;
 
     public List<OpcionRolEmpresa> RolesEmpresa { get; } =
     [
@@ -190,7 +179,7 @@ public class ReglasContablesViewModel : ViewModelBase
         set => EstablecerPropiedad(ref nombreRegla, value);
     }
 
-    public OpcionTipoDte? TipoDteSeleccionado
+    public TipoDteDefinicion? TipoDteSeleccionado
     {
         get => tipoDteSeleccionado;
         set => EstablecerPropiedad(ref tipoDteSeleccionado, value);
@@ -239,6 +228,12 @@ public class ReglasContablesViewModel : ViewModelBase
                 CargarLineasRegla();
             }
         }
+    }
+
+    public DocumentoDte? DteSeleccionadoParaRegla
+    {
+        get => dteSeleccionadoParaRegla;
+        set => EstablecerPropiedad(ref dteSeleccionadoParaRegla, value);
     }
 
     public CuentaContable? CuentaSeleccionada
@@ -318,6 +313,8 @@ public class ReglasContablesViewModel : ViewModelBase
     public ICommand EliminarReglaCommand => eliminarReglaCommand;
     public ICommand ActualizarCuentaCommand => actualizarCuentaCommand;
     public ICommand EliminarCuentaCommand => eliminarCuentaCommand;
+    public ICommand UsarDteSeleccionadoCommand =>
+        usarDteSeleccionadoCommand;
 
     public ReglasContablesViewModel()
     {
@@ -334,6 +331,8 @@ public class ReglasContablesViewModel : ViewModelBase
         eliminarReglaCommand = new RelayCommand(EliminarRegla);
         actualizarCuentaCommand = new RelayCommand(ActualizarCuenta);
         eliminarCuentaCommand = new RelayCommand(EliminarCuenta);
+        usarDteSeleccionadoCommand =
+            new RelayCommand(UsarDteSeleccionado);
 
         CargarDatos();
     }
@@ -356,6 +355,13 @@ public class ReglasContablesViewModel : ViewModelBase
             Reglas.Add(regla);
         }
 
+        DtesValidados.Clear();
+        foreach (DocumentoDte documento in
+                 ServicioReglasContables.ObtenerDtesValidados(empresaId))
+        {
+            DtesValidados.Add(documento);
+        }
+
         CuentasCatalogo.Clear();
 
         foreach (CuentaContable cuenta in
@@ -367,6 +373,34 @@ public class ReglasContablesViewModel : ViewModelBase
 
         LineasRegla.Clear();
         ReglaSeleccionada = null;
+        DteSeleccionadoParaRegla = null;
+    }
+
+    private void UsarDteSeleccionado(object? parametro)
+    {
+        if (DteSeleccionadoParaRegla is null)
+        {
+            Mensaje = "Selecciona un DTE validado para iniciar la regla.";
+            return;
+        }
+
+        DocumentoDte documento = DteSeleccionadoParaRegla;
+        TipoDteDefinicion? tipoDte =
+            CatalogoTiposDte.Obtener(documento.TipoDte);
+        ReglaSeleccionada = null;
+        TipoDteSeleccionado = tipoDte;
+        RolEmpresaSeleccionado = documento.RolEmpresa;
+        NombreRegla =
+            $"{documento.ClasificacionContableDescripcion} - {documento.TipoDteDescripcion}";
+        VigenciaDesde = DateTime.Today;
+        VigenciaHasta = null;
+        Condiciones.Clear();
+        CondicionSeleccionada = null;
+        ActualizarVistaPrevia();
+
+        Mensaje = tipoDte is null
+            ? $"El tipo {documento.TipoDte} del JSON no está en el catálogo. Elige manualmente un tipo antes de guardar la regla. Categoría sugerida: {documento.ClasificacionContableDescripcion}."
+            : $"Tipo {documento.TipoDte} ({documento.TipoDteDescripcion}) detectado en el JSON. Categoría: {documento.ClasificacionContableDescripcion}. Revisa la categoría y agrega las cuentas de la regla.";
     }
 
     private void CargarLineasRegla()
@@ -430,6 +464,14 @@ public class ReglasContablesViewModel : ViewModelBase
         if (SesionActual.EmpresaId is null)
         {
             Mensaje = "No hay una empresa activa en la sesión.";
+            return;
+        }
+
+        if (DteSeleccionadoParaRegla is not null &&
+            TipoDteSeleccionado is null)
+        {
+            Mensaje =
+                $"El código DTE {DteSeleccionadoParaRegla.TipoDte} aún no está en el catálogo. Selecciona manualmente un tipo antes de guardar la regla.";
             return;
         }
 

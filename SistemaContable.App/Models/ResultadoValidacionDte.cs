@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SistemaContableDTE.Models;
-
+//clase para validadr el estado del dte en hacienda.. 
 public class ResultadoValidacionDte
 {
     [Key]

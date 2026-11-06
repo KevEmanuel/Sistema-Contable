@@ -1,7 +1,8 @@
 <UserControl x:Class="SistemaContableDTE.Views.ContabilizacionAutomaticaView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels">
+             xmlns:vm="clr-namespace:SistemaContableDTE.ViewModels"
+             xmlns:model="clr-namespace:SistemaContableDTE.Models">
 
     <UserControl.DataContext>
         <vm:ContabilizacionAutomaticaViewModel/>
@@ -9,13 +10,11 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="30">
-
             <Grid Margin="0,0,0,20">
-                <TextBlock Text="Contabilización automática de DTE"
+                <TextBlock Text="DTE a libros contables"
                            FontSize="26"
                            FontWeight="Bold"
                            VerticalAlignment="Center"/>
-
                 <Button Content="Volver al panel"
                         Width="170"
                         Height="32"
@@ -23,91 +22,268 @@
                         Click="VolverAlPanelPrincipal_Click"/>
             </Grid>
 
-            <GroupBox Header="Generar partida contable"
+            <TextBlock Text="Configura las cuentas y la operación para cada código de tipo DTE. Los borradores generados siempre quedan pendientes de revisión."
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,15"/>
+
+            <GroupBox Header="1. Configuración por tipo de DTE"
+                      Margin="0,0,0,15">
+                <StackPanel Margin="15">
+                    <DataGrid ItemsSource="{Binding Configuraciones}"
+                              SelectedItem="{Binding ConfiguracionSeleccionada}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              SelectionMode="Single"
+                              Height="115"
+                              Margin="0,0,0,12">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Código DTE"
+                                                Binding="{Binding TipoDte}"
+                                                Width="110"/>
+                            <DataGridTextColumn Header="Operación configurada"
+                                                Binding="{Binding OperacionDescripcion}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="Código de tipo DTE (1 a 5 caracteres)"/>
+                            <ComboBox ItemsSource="{Binding TiposDteDisponibles}"
+                                      Text="{Binding TipoDteCodigo, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEditable="True"
+                                      IsReadOnly="{Binding CodigoDteBloqueado}"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                            <TextBlock Text="Clasificación"/>
+                            <ComboBox SelectedValue="{Binding OperacionSeleccionada}"
+                                      SelectedValuePath="Tag"
+                                      Margin="0,4,0,0">
+                                <ComboBoxItem Content="Venta"
+                                              Tag="{x:Static model:OperacionConfiguracionDte.Venta}"/>
+                                <ComboBoxItem Content="Compra"
+                                              Tag="{x:Static model:OperacionConfiguracionDte.Compra}"/>
+                                <ComboBoxItem Content="Revisión manual (sin generar partida)"
+                                              Tag="{x:Static model:OperacionConfiguracionDte.RevisionManual}"/>
+                                <ComboBoxItem Content="Automática por rol (solo tipos 01 y 03)"
+                                              Tag="{x:Static model:OperacionConfiguracionDte.PorRolEmpresa}"/>
+                            </ComboBox>
+                        </StackPanel>
+                        <Button Grid.Column="2"
+                                Content="Nueva configuración"
+                                Height="30"
+                                Padding="10,0"
+                                VerticalAlignment="Bottom"
+                                Command="{Binding NuevaConfiguracionCommand}"/>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="Clientes / cuentas por cobrar"/>
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaClientesSeleccionada}"
+                                      DisplayMemberPath="Etiqueta"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,10">
+                            <TextBlock Text="Ventas"/>
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaVentasSeleccionada}"
+                                      DisplayMemberPath="Etiqueta"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,10">
+                            <TextBlock Text="IVA débito fiscal (si aplica)"/>
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaIvaDebitoSeleccionada}"
+                                      DisplayMemberPath="Etiqueta"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="Proveedores / cuentas por pagar"/>
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaProveedoresSeleccionada}"
+                                      DisplayMemberPath="Etiqueta"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,10">
+                            <TextBlock Text="Compras / gastos"/>
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaComprasSeleccionada}"
+                                      DisplayMemberPath="Etiqueta"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,10">
+                            <TextBlock Text="IVA crédito fiscal (si aplica)"/>
+                            <ComboBox ItemsSource="{Binding Cuentas}"
+                                      SelectedItem="{Binding CuentaIvaAcreditableSeleccionada}"
+                                      DisplayMemberPath="Etiqueta"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Los códigos no incluidos en el catálogo también se pueden escribir aquí. La clasificación por rol conserva el comportamiento anterior para Factura (01) y Crédito fiscal (03); los demás tipos deben configurarse como compra, venta o revisión manual."
+                               Foreground="DimGray"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,10"/>
+                    <Button Content="Guardar configuración del tipo DTE"
+                            Height="30"
+                            HorizontalAlignment="Right"
+                            Command="{Binding GuardarConfiguracionCommand}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="2. Preparar partida desde un DTE validado"
                       Margin="0,0,0,15">
                 <Grid Margin="15">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"/>
                         <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="180"/>
                     </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="DTE validado pendiente"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                        <TextBlock Text="DTE validado pendiente de contabilizar"/>
                         <ComboBox ItemsSource="{Binding DtesPendientes}"
                                   SelectedItem="{Binding DocumentoSeleccionado}"
-                                  DisplayMemberPath="CodigoGeneracion"
-                                  Height="28"
-                                  Margin="0,5,0,0"/>
+                                  Margin="0,4,0,0">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding TipoDte, Mode=OneWay}"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding NumeroControl, Mode=OneWay}"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding FechaEmision, StringFormat=d, Mode=OneWay}"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding OperacionContableDescripcion, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
-
-                    <StackPanel Grid.Column="1"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Regla contable"/>
-                        <ComboBox ItemsSource="{Binding Reglas}"
-                                  SelectedItem="{Binding ReglaSeleccionada}"
-                                  DisplayMemberPath="Nombre"
-                                  Height="28"
-                                  Margin="0,5,0,0"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2"
-                                Margin="0,0,12,0">
+                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
                         <TextBlock Text="Período contable"/>
                         <ComboBox ItemsSource="{Binding Periodos}"
                                   SelectedItem="{Binding PeriodoSeleccionado}"
                                   DisplayMemberPath="Nombre"
-                                  Height="28"
-                                  Margin="0,5,0,0"/>
+                                  Margin="0,4,0,0"/>
                     </StackPanel>
-
-                    <Button Grid.Column="3"
-                            Content="Generar partida"
-                            Height="30"
-                            VerticalAlignment="Bottom"
-                            Command="{Binding ContabilizarCommand}"/>
+                    <StackPanel Grid.Row="1"
+                                Grid.ColumnSpan="2"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,10,0,0">
+                        <Button Content="Generar borrador seleccionado"
+                                Height="30"
+                                Padding="12,0"
+                                Margin="0,0,8,0"
+                                Command="{Binding GenerarBorradorCommand}"/>
+                        <Button Content="Preparar todos los DTE pendientes"
+                                Height="30"
+                                Padding="12,0"
+                                Command="{Binding GenerarBorradoresTodosCommand}"/>
+                    </StackPanel>
                 </Grid>
             </GroupBox>
 
             <TextBlock Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
                        TextWrapping="Wrap"
                        Margin="0,0,0,12"/>
 
-            <GroupBox Header="Líneas que aplicará la regla">
-                <DataGrid ItemsSource="{Binding LineasRegla}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          CanUserAddRows="False"
-                          Height="220"
-                          Margin="15">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Orden"
-                                            Binding="{Binding Orden}"
-                                            Width="70"/>
-                        <DataGridTextColumn Header="Código"
-                                            Binding="{Binding CuentaContable.Codigo}"
-                                            Width="120"/>
-                        <DataGridTextColumn Header="Cuenta"
-                                            Binding="{Binding CuentaContable.Nombre}"
-                                            Width="*"/>
-                        <DataGridTextColumn Header="Lado"
-                                            Binding="{Binding Lado}"
-                                            Width="100"/>
-                        <DataGridTextColumn Header="Fórmula"
-                                            Binding="{Binding FormulaDescripcion}"
-                                            Width="180"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+            <GroupBox Header="3. Revisar y confirmar borrador"
+                      Margin="0,0,0,15">
+                <StackPanel Margin="15">
+                    <DataGrid ItemsSource="{Binding Borradores}"
+                              SelectedItem="{Binding BorradorSeleccionado}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              SelectionMode="Single"
+                              Height="145">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Partida"
+                                                Binding="{Binding NumeroPartida}"
+                                                Width="75"/>
+                            <DataGridTextColumn Header="Fecha"
+                                                Binding="{Binding Fecha, StringFormat=d}"
+                                                Width="100"/>
+                            <DataGridTextColumn Header="DTE"
+                                                Binding="{Binding DocumentoDte.TipoDte}"
+                                                Width="70"/>
+                            <DataGridTextColumn Header="Número de control"
+                                                Binding="{Binding DocumentoDte.NumeroControl}"
+                                                Width="*"/>
+                            <DataGridTextColumn Header="Estado"
+                                                Binding="{Binding Estado}"
+                                                Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <TextBlock Text="Detalle de la partida seleccionada"
+                               FontWeight="Bold"
+                               Margin="0,10,0,5"/>
+                    <DataGrid ItemsSource="{Binding BorradorSeleccionado.Detalles}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Height="130">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Cuenta"
+                                                Binding="{Binding CuentaContable.Etiqueta}"
+                                                Width="*"/>
+                            <DataGridTextColumn Header="Concepto"
+                                                Binding="{Binding Concepto}"
+                                                Width="*"/>
+                            <DataGridTextColumn Header="Debe"
+                                                Binding="{Binding Debe, StringFormat=N2}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Haber"
+                                                Binding="{Binding Haber, StringFormat=N2}"
+                                                Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,10,0,0">
+                        <Button Content="Eliminar borrador"
+                                Height="30"
+                                Margin="0,0,8,0"
+                                Padding="12,0"
+                                Command="{Binding EliminarBorradorCommand}"/>
+                        <Button Content="Confirmar y agregar a libros"
+                                Height="30"
+                                Padding="12,0"
+                                Command="{Binding ContabilizarBorradorCommand}"/>
+                    </StackPanel>
+                </StackPanel>
             </GroupBox>
 
             <Button Content="Actualizar datos"
                     Width="150"
                     Height="30"
                     HorizontalAlignment="Right"
-                    Margin="0,15,0,0"
                     Command="{Binding CargarCommand}"/>
         </StackPanel>
     </ScrollViewer>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,6 +11,17 @@ using SistemaContableDTE.Models;
 
 //modulo para la validacion de libro fiscal 05
 namespace SistemaContableDTE.Services;
+
+public sealed record DatosEvidenciaDte(
+    string? SelloRecibido,
+    string? EstadoHacienda,
+    DateTime? FechaProcesamiento,
+    string? CodigoMensaje,
+    string? DescripcionMensaje,
+    string? Observaciones,
+    string? RespuestaJson,
+    bool TieneRespuestaHacienda,
+    EstadoDocumentoDte? EstadoDocumentoSugerido);
 
 public static class ServicioValidacionFiscal
 {
@@ -22,6 +34,91 @@ public static class ServicioValidacionFiscal
             .Where(documento => documento.EmpresaId == empresaId)
             .OrderByDescending(documento => documento.FechaEmision)
             .ToList();
+    }
+
+    public static DatosEvidenciaDte ObtenerDatosEvidenciaDte(
+        int empresaId,
+        int documentoDteId)
+    {
+        using var contexto = new ContabilidadDbContext();
+
+        string? jsonOriginal = contexto.ArchivosDte
+            .AsNoTracking()
+            .Where(archivo =>
+                archivo.DocumentoDteId == documentoDteId &&
+                archivo.DocumentoDte!.EmpresaId == empresaId)
+            .Select(archivo => archivo.JsonOriginal)
+            .SingleOrDefault();
+
+        if (jsonOriginal is null)
+        {
+            throw new InvalidOperationException(
+                "No se encontró el JSON original del DTE seleccionado.");
+        }
+
+        using JsonDocument json = JsonDocument.Parse(jsonOriginal);
+        JsonElement raiz = json.RootElement;
+        if (raiz.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                "El JSON original del DTE debe tener un objeto como raíz.");
+        }
+
+        JsonElement respuesta = ObtenerObjetoPropiedad(
+            raiz,
+            "responseMH",
+            "json_respuesta",
+            "respuestaHacienda",
+            "respuestaRecepcion",
+            "respuesta",
+            "response");
+        bool tieneRespuestaHacienda =
+            respuesta.ValueKind == JsonValueKind.Object ||
+            ContieneCampoRespuesta(raiz);
+
+        if (respuesta.ValueKind != JsonValueKind.Object)
+        {
+            respuesta = tieneRespuestaHacienda ? raiz : default;
+        }
+
+        string? selloRecibido =
+            LeerTexto(respuesta, "selloRecibido") ??
+            LeerTexto(raiz, "selloRecibido");
+        string? estadoHacienda = LeerTexto(respuesta, "estado");
+        string? fechaProcesamientoTexto =
+            LeerTexto(respuesta, "fhProcesamiento") ??
+            LeerTexto(respuesta, "fechaProcesamiento");
+        DateTime? fechaProcesamiento =
+            LeerFechaProcesamiento(fechaProcesamientoTexto);
+        string? codigoMensaje = LeerTexto(respuesta, "codigoMsg");
+        string? descripcionMensaje =
+            LeerTexto(respuesta, "descripcionMsg");
+        string? observaciones = LeerObservaciones(respuesta);
+        string? respuestaJson = respuesta.ValueKind == JsonValueKind.Object &&
+                                tieneRespuestaHacienda
+            ? respuesta.GetRawText()
+            : null;
+
+        EstadoDocumentoDte? estadoDocumentoSugerido =
+            estadoHacienda?.Trim().ToUpperInvariant() switch
+            {
+                "PROCESADO" => EstadoDocumentoDte.Validado,
+                "RECHAZADO" => EstadoDocumentoDte.Rechazado,
+                "INVALIDADO" or "ANULADO" =>
+                    EstadoDocumentoDte.Invalidado,
+                _ => null
+            };
+
+        return new DatosEvidenciaDte(
+            selloRecibido,
+            estadoHacienda,
+            fechaProcesamiento,
+            codigoMensaje,
+            descripcionMensaje,
+            observaciones,
+            respuestaJson,
+            tieneRespuestaHacienda,
+            estadoDocumentoSugerido);
     }
 
     public static List<EvidenciaFiscal> ObtenerEvidencias(
@@ -116,7 +213,7 @@ public static class ServicioValidacionFiscal
             Fuente = fuente,
             SelloRecibido = Limpiar(selloRecibido),
             EstadoHacienda = Limpiar(estadoHacienda),
-            FechaProcesamiento = fechaProcesamiento ?? DateTime.Now,
+            FechaProcesamiento = fechaProcesamiento,
             CodigoMensaje = Limpiar(codigoMensaje),
             DescripcionMensaje = Limpiar(descripcionMensaje),
             Observaciones = Limpiar(observaciones),
@@ -137,14 +234,17 @@ public static class ServicioValidacionFiscal
         contexto.EvidenciasFiscales.Add(evidencia);
         contexto.ResultadosValidacionDte.AddRange(resultados);
 
-        if (nuevoEstado != EstadoDocumentoDte.Validado ||
-            validacionAprobada)
+        if (nuevoEstado is EstadoDocumentoDte.Importado or
+            EstadoDocumentoDte.PendienteValidacion or
+            EstadoDocumentoDte.Validado)
+        {
+            documento.Estado = validacionAprobada
+                ? EstadoDocumentoDte.Validado
+                : EstadoDocumentoDte.PendienteValidacion;
+        }
+        else
         {
             documento.Estado = nuevoEstado;
-        }
-        else if (documento.Estado == EstadoDocumentoDte.Validado)
-        {
-            documento.Estado = EstadoDocumentoDte.PendienteValidacion;
         }
 
         if (nuevoEstado == EstadoDocumentoDte.Invalidado)
@@ -807,5 +907,171 @@ public static class ServicioValidacionFiscal
             ValidadoEn = DateTime.Now,
             UsuarioId = usuarioId
         });
+    }
+
+    private static JsonElement ObtenerObjetoPropiedad(
+        JsonElement objeto,
+        params string[] nombres)
+    {
+        if (objeto.ValueKind != JsonValueKind.Object)
+        {
+            return default;
+        }
+
+        foreach (JsonProperty propiedad in objeto.EnumerateObject())
+        {
+            if (nombres.Contains(
+                    propiedad.Name,
+                    StringComparer.OrdinalIgnoreCase) &&
+                propiedad.Value.ValueKind == JsonValueKind.Object)
+            {
+                return propiedad.Value;
+            }
+        }
+
+        return default;
+    }
+
+    private static bool ContieneCampoRespuesta(JsonElement objeto)
+    {
+        if (objeto.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        string[] nombres =
+        [
+            "estado",
+            "fhProcesamiento",
+            "fechaProcesamiento",
+            "codigoMsg",
+            "descripcionMsg",
+            "observaciones"
+        ];
+
+        return objeto.EnumerateObject().Any(propiedad =>
+            nombres.Contains(
+                propiedad.Name,
+                StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static string? LeerTexto(
+        JsonElement objeto,
+        string nombre)
+    {
+        if (objeto.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        JsonElement valor = default;
+        bool encontrada = false;
+        foreach (JsonProperty propiedad in objeto.EnumerateObject())
+        {
+            if (string.Equals(
+                    propiedad.Name,
+                    nombre,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                valor = propiedad.Value;
+                encontrada = true;
+                break;
+            }
+        }
+
+        if (!encontrada ||
+            valor.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return null;
+        }
+
+        string texto = valor.ValueKind == JsonValueKind.String
+            ? valor.GetString() ?? string.Empty
+            : valor.ToString();
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? null
+            : texto.Trim();
+    }
+
+    private static DateTime? LeerFechaProcesamiento(string? texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto))
+        {
+            return null;
+        }
+
+        string[] formatos =
+        [
+            "dd/MM/yyyy HH:mm:ss",
+            "dd/MM/yyyy H:mm:ss",
+            "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+            "yyyy-MM-dd HH:mm:ss"
+        ];
+
+        return DateTime.TryParseExact(
+                   texto,
+                   formatos,
+                   CultureInfo.InvariantCulture,
+                   DateTimeStyles.AllowWhiteSpaces |
+                   DateTimeStyles.AssumeLocal,
+                   out DateTime fecha)
+            ? fecha
+            : DateTime.TryParse(
+                texto,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces |
+                DateTimeStyles.AssumeLocal,
+                out fecha)
+                ? fecha
+                : null;
+    }
+
+    private static string? LeerObservaciones(JsonElement respuesta)
+    {
+        if (respuesta.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        JsonElement observaciones = default;
+        foreach (JsonProperty propiedad in respuesta.EnumerateObject())
+        {
+            if (string.Equals(
+                    propiedad.Name,
+                    "observaciones",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                observaciones = propiedad.Value;
+                break;
+            }
+        }
+
+        if (observaciones.ValueKind is
+            JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        if (observaciones.ValueKind == JsonValueKind.Array)
+        {
+            string[] elementos = observaciones.EnumerateArray()
+                .Select(elemento =>
+                    elemento.ValueKind == JsonValueKind.String
+                        ? elemento.GetString()
+                        : elemento.GetRawText())
+                .Where(elemento =>
+                    !string.IsNullOrWhiteSpace(elemento))
+                .Select(elemento => elemento!)
+                .ToArray();
+
+            return elementos.Length == 0
+                ? null
+                : string.Join(Environment.NewLine, elementos);
+        }
+
+        return observaciones.ValueKind == JsonValueKind.String
+            ? observaciones.GetString()
+            : observaciones.GetRawText();
     }
 }

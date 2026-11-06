@@ -251,7 +251,33 @@ public class CatalogoCuentasViewModel : ViewModelBase
         eliminarCommand = new RelayCommand(Eliminar);
         cargarCommand = new RelayCommand(_ => CargarCuentas());
 
+        InicializarCatalogoBase();
         CargarCuentas();
+    }
+
+    private void InicializarCatalogoBase()
+    {
+        if (SesionActual.EmpresaId is null)
+        {
+            return;
+        }
+
+        try
+        {
+            int cuentasImportadas =
+                ServicioCatalogoCuentas.CargarCatalogoBaseSiEstaVacio(
+                    SesionActual.EmpresaId.Value);
+
+            if (cuentasImportadas > 0)
+            {
+                Mensaje =
+                    $"Catálogo base cargado automáticamente: {cuentasImportadas} cuentas. Puede ajustar el tipo de cada cuenta.";
+            }
+        }
+        catch (System.Exception error)
+        {
+            Mensaje = $"No se pudo cargar el catálogo de cuentas: {error.Message}";
+        }
     }
 
     private void CargarCuentas()

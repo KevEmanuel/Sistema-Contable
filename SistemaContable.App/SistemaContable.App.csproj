@@ -16,5 +16,12 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.13" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\catalogo_cuentas_comercial.json">
+      <Link>catalogo_cuentas_comercial.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
   

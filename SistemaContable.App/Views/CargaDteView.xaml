@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -30,6 +31,81 @@
         </Grid>
 
         <GroupBox Grid.Row="1"
+                  Header="Clientes a quienes se lleva la contabilidad"
+                  Margin="0,0,0,15">
+            <Grid Margin="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="170"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,10">
+                    <TextBlock Text="Nombre del cliente"/>
+                    <TextBox Text="{Binding NombreCliente,
+                                            UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,10">
+                    <TextBlock Text="NIT"/>
+                    <TextBox Text="{Binding NitCliente,
+                                            UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,10">
+                    <TextBlock Text="NRC (opcional)"/>
+                    <TextBox Text="{Binding NrcCliente,
+                                            UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Row="0" Grid.Column="3"
+                        Content="Registrar cliente"
+                        Height="30"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,0,10"
+                        Command="{Binding AgregarClienteCommand}"/>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="Cliente para importar o asignar el DTE seleccionado (si no eliges uno, se intenta detectar por NIT/NRC)"/>
+                    <ComboBox ItemsSource="{Binding Clientes}"
+                              SelectedItem="{Binding ClienteSeleccionado}"
+                              DisplayMemberPath="Etiqueta"
+                              Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Row="1" Grid.Column="3"
+                        Content="Asignar al DTE"
+                        Height="30"
+                        VerticalAlignment="Bottom"
+                        Command="{Binding AsignarClienteCommand}"/>
+
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="4"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,10,0,0">
+                    <TextBlock Text="Para los JSON de prueba: "
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <Button Content="El cliente es el emisor"
+                            Height="30"
+                            Padding="10,0"
+                            Margin="0,0,8,0"
+                            Command="{Binding RegistrarEmisorComoClienteCommand}"/>
+                    <Button Content="El cliente es el receptor"
+                            Height="30"
+                            Padding="10,0"
+                            Command="{Binding RegistrarReceptorComoClienteCommand}"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="2"
                   Header="Importar archivo JSON"
                   Margin="0,0,0,15">
             <Grid Margin="15">
@@ -58,13 +134,13 @@
             </Grid>
         </GroupBox>
 
-        <TextBlock Grid.Row="2"
+        <TextBlock Grid.Row="3"
                    Text="{Binding Mensaje}"
                    Foreground="DarkRed"
                    TextWrapping="Wrap"
                    Margin="0,0,0,10"/>
 
-        <DockPanel Grid.Row="3">
+        <DockPanel Grid.Row="4">
             <Button DockPanel.Dock="Top"
                     Content="Eliminar DTE seleccionado"
                     Width="200"
@@ -93,9 +169,21 @@
                 <DataGridTextColumn Header="Número de control"
                                     Binding="{Binding NumeroControl}"
                                     Width="180"/>
+                <DataGridTextColumn Header="Emisor del JSON"
+                                    Binding="{Binding EmisorDescripcion, Mode=OneWay}"
+                                    Width="220"/>
+                <DataGridTextColumn Header="Receptor del JSON"
+                                    Binding="{Binding ReceptorDescripcion, Mode=OneWay}"
+                                    Width="220"/>
                 <DataGridTextColumn Header="Rol empresa"
                                     Binding="{Binding RolEmpresa}"
                                     Width="130"/>
+                <DataGridTextColumn Header="Clasificación"
+                                    Binding="{Binding OperacionContableDescripcion, Mode=OneWay}"
+                                    Width="150"/>
+                <DataGridTextColumn Header="Cliente"
+                                    Binding="{Binding ClienteContable.Nombre, Mode=OneWay}"
+                                    Width="180"/>
                 <DataGridTextColumn Header="Estado"
                                     Binding="{Binding Estado}"
                                     Width="150"/>

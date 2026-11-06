@@ -75,12 +75,13 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
                                Grid.ColumnSpan="3"
-                               Text="La validación comprueba consistencia local y campos de evidencia registrados; no autentica el sello ni consulta los servicios de Hacienda."
+                               Text="Al seleccionar un DTE se completan los datos disponibles en su JSON. Usa Consultar estado en Hacienda para obtener y guardar el estado oficial. Las comprobaciones locales de estructura e importes se ejecutan por separado y pueden dejar el DTE pendiente de validación local."
                                TextWrapping="Wrap"
                                Margin="0,0,0,10" />
 
@@ -97,7 +98,7 @@
                     <StackPanel Grid.Row="1"
                                 Grid.Column="1"
                                 Margin="0,0,12,10">
-                        <TextBlock Text="Nuevo estado del DTE" />
+                        <TextBlock Text="Estado solicitado del DTE" />
                         <ComboBox ItemsSource="{Binding EstadosDocumento}"
                                   SelectedItem="{Binding EstadoDocumentoSeleccionado}"
                                   Height="28"
@@ -133,7 +134,7 @@
                     <StackPanel Grid.Row="2"
                                 Grid.Column="2"
                                 Margin="0,0,0,10">
-                        <TextBlock Text="Código de mensaje" />
+                        <TextBlock Text="Código de respuesta" />
                         <TextBox Text="{Binding CodigoMensaje}"
                                  Height="28"
                                  Margin="0,5,0,0" />
@@ -141,8 +142,18 @@
 
                     <StackPanel Grid.Row="3"
                                 Grid.Column="0"
-                                Grid.ColumnSpan="2"
-                                Margin="0,0,12,0">
+                                Margin="0,0,12,10">
+                        <TextBlock Text="Descripción de Respuesta de Hacienda" />
+                        <TextBox Text="{Binding DescripcionMensaje}"
+                                 Height="52"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3"
+                                Grid.Column="1"
+                                Margin="0,0,12,10">
                         <TextBlock Text="Observaciones o mensaje" />
                         <TextBox Text="{Binding Observaciones}"
                                  Height="52"
@@ -161,6 +172,23 @@
                                 Height="32"
                                 Margin="0,6,0,0"
                                 Command="{Binding ActualizarEvidenciaCommand}" />
+                        <Button Content="Consultar estado en Hacienda y registrar"
+                                Height="36"
+                                Margin="0,6,0,0"
+                                Command="{Binding ConsultarEstadoHaciendaCommand}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="3">
+                        <TextBlock Text="Respuesta de Hacienda (si está incluida en el archivo)" />
+                        <TextBox Text="{Binding RespuestaJson}"
+                                 Height="90"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 Margin="0,5,0,0" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
@@ -278,34 +306,6 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Resultados de validación"
-                      Margin="0,15,0,0">
-                <DataGrid ItemsSource="{Binding ResultadosValidacion}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          CanUserAddRows="False"
-                          Height="190"
-                          Margin="15">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tipo"
-                                            Binding="{Binding TipoValidacion}"
-                                            Width="110" />
-                        <DataGridTextColumn Header="Resultado"
-                                            Binding="{Binding Resultado}"
-                                            Width="140" />
-                        <DataGridTextColumn Header="Validador"
-                                            Binding="{Binding VersionValidador}"
-                                            Width="100" />
-                        <DataGridTextColumn Header="Fecha"
-                                            Binding="{Binding ValidadoEn,
-                                                              StringFormat=g}"
-                                            Width="150" />
-                        <DataGridTextColumn Header="Errores"
-                                            Binding="{Binding ErroresJson}"
-                                            Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

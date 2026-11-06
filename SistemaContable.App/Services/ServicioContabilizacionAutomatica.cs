@@ -8,6 +8,12 @@ using SistemaContableDTE.Data;
 using SistemaContableDTE.Models;
 
 namespace SistemaContableDTE.Services;
+
+public sealed record ResumenDtesSinValidar(
+    int Importados,
+    int PendientesValidacion,
+    int Rechazados);
+
 //modul 06 de contablidad automatica
 public static class ServicioContabilizacionAutomatica
 {
@@ -24,6 +30,33 @@ public static class ServicioContabilizacionAutomatica
                     partida.DocumentoDteId == documento.DocumentoDteId))
             .OrderBy(documento => documento.FechaEmision)
             .ToList();
+    }
+
+    public static ResumenDtesSinValidar ObtenerResumenDtesSinValidar(
+        int empresaId)
+    {
+        using var contexto = new ContabilidadDbContext();
+
+        Dictionary<EstadoDocumentoDte, int> conteos = contexto.DocumentosDte
+            .AsNoTracking()
+            .Where(documento =>
+                documento.EmpresaId == empresaId &&
+                (documento.Estado == EstadoDocumentoDte.Importado ||
+                 documento.Estado == EstadoDocumentoDte.PendienteValidacion ||
+                 documento.Estado == EstadoDocumentoDte.Rechazado))
+            .GroupBy(documento => documento.Estado)
+            .Select(grupo => new
+            {
+                Estado = grupo.Key,
+                Total = grupo.Count()
+            })
+            .ToDictionary(item => item.Estado, item => item.Total);
+
+        return new ResumenDtesSinValidar(
+            conteos.GetValueOrDefault(EstadoDocumentoDte.Importado),
+            conteos.GetValueOrDefault(
+                EstadoDocumentoDte.PendienteValidacion),
+            conteos.GetValueOrDefault(EstadoDocumentoDte.Rechazado));
     }
 
     public static List<ReglaContable> ObtenerReglasVigentes(
@@ -262,6 +295,10 @@ public static class ServicioContabilizacionAutomatica
         contexto.PartidasContables.Add(partidaNueva);
 
         documento.Estado = EstadoDocumentoDte.Contabilizado;
+        ServicioLibroIva.GenerarDesdePartidaContabilizada(
+            contexto,
+            documento,
+            periodoContableId);
 
         contexto.SaveChanges();
         transaccion.Commit();
@@ -292,7 +329,7 @@ public static class ServicioContabilizacionAutomatica
 
         decimal iva = archivo is null
             ? 0
-            : LeerResumen(archivo.JsonOriginal, "totalIva");
+            : LeerTotalIva(archivo.JsonOriginal);
 
         decimal totalOperacion = archivo is null
             ? 0
@@ -397,6 +434,17 @@ public static class ServicioContabilizacionAutomatica
             CultureInfo.CurrentCulture,
             out resultado)
             ? resultado
+            : 0;
+    }
+
+    private static decimal LeerTotalIva(string jsonOriginal)
+    {
+        using JsonDocument json = JsonDocument.Parse(jsonOriginal);
+
+        return json.RootElement.TryGetProperty(
+                "resumen",
+                out JsonElement resumen)
+            ? ServicioResumenTributarioDte.LeerTotalIva(resumen) ?? 0
             : 0;
     }
 }

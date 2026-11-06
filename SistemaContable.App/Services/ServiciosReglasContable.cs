@@ -13,6 +13,21 @@ namespace SistemaContableDTE.Services;
 
 public static class ServicioReglasContables
 {
+    public static List<DocumentoDte> ObtenerDtesValidados(int empresaId)
+    {
+        using var contexto = new ContabilidadDbContext();
+
+        return contexto.DocumentosDte
+            .AsNoTracking()
+            .Include(documento => documento.Participantes)
+            .Where(documento =>
+                documento.EmpresaId == empresaId &&
+                documento.Estado == EstadoDocumentoDte.Validado)
+            .OrderByDescending(documento => documento.FechaEmision)
+            .ThenBy(documento => documento.TipoDte)
+            .ToList();
+    }
+
     public static List<ReglaContable> ObtenerPorEmpresa(int empresaId)
     {
         using var contexto = new ContabilidadDbContext();

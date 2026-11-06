@@ -23,6 +23,58 @@
                         Click="VolverAlPanelPrincipal_Click"/>
             </Grid>
 
+            <GroupBox Header="DTE validados para iniciar una regla"
+                      Margin="0,0,0,15">
+                <DockPanel Margin="12">
+                    <StackPanel DockPanel.Dock="Top"
+                                Margin="0,0,0,8">
+                        <TextBlock Text="El tipo se lee del código tipoDte del JSON y la categoría se determina con el rol de la empresa. Los tipos especiales o roles sin identificar requieren revisión."
+                                   Foreground="DimGray"
+                                   TextWrapping="Wrap"/>
+                        <Button Content="Usar DTE seleccionado para nueva regla"
+                                Width="270"
+                                Height="30"
+                                HorizontalAlignment="Right"
+                                Margin="0,8,0,0"
+                                Command="{Binding UsarDteSeleccionadoCommand}"/>
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding DtesValidados}"
+                              SelectedItem="{Binding DteSeleccionadoParaRegla,
+                                                     Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              SelectionMode="Single"
+                              Height="180">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Fecha"
+                                                Binding="{Binding FechaEmision,
+                                                                  StringFormat=d}"
+                                                Width="95"/>
+                            <DataGridTextColumn Header="Código"
+                                                Binding="{Binding TipoDte}"
+                                                Width="60"/>
+                            <DataGridTextColumn Header="Tipo de DTE"
+                                                Binding="{Binding TipoDteDescripcion}"
+                                                Width="220"/>
+                            <DataGridTextColumn Header="Categoría sugerida"
+                                                Binding="{Binding ClasificacionContableDescripcion}"
+                                                Width="190"/>
+                            <DataGridTextColumn Header="Rol de la empresa"
+                                                Binding="{Binding RolEmpresa}"
+                                                Width="130"/>
+                            <DataGridTextColumn Header="Número de control"
+                                                Binding="{Binding NumeroControl}"
+                                                Width="190"/>
+                            <DataGridTextColumn Header="Código de generación"
+                                                Binding="{Binding CodigoGeneracion}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </GroupBox>
+
             <GroupBox Header="Nueva regla contable"
                       Margin="0,0,0,15">
                 <Grid Margin="15">

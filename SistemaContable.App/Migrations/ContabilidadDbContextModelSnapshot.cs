@@ -165,6 +165,93 @@ namespace SistemaContable.App.Migrations
                     b.ToTable("BitacorasAuditoria");
                 });
 
+            modelBuilder.Entity("SistemaContableDTE.Models.ClienteContable", b =>
+                {
+                    b.Property<int>("ClienteContableId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nit")
+                        .IsRequired()
+                        .HasMaxLength(17)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nrc")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ClienteContableId");
+
+                    b.HasIndex("EmpresaId", "Nit")
+                        .IsUnique();
+
+                    b.ToTable("ClientesContables");
+                });
+
+            modelBuilder.Entity("SistemaContableDTE.Models.ConfiguracionContableAutomatica", b =>
+                {
+                    b.Property<int>("ConfiguracionContableAutomaticaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CuentaClientesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CuentaComprasId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CuentaIvaAcreditableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CuentaIvaDebitoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CuentaProveedoresId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CuentaVentasId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Operacion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TipoDte")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ConfiguracionContableAutomaticaId");
+
+                    b.HasIndex("CuentaClientesId");
+
+                    b.HasIndex("CuentaComprasId");
+
+                    b.HasIndex("CuentaIvaAcreditableId");
+
+                    b.HasIndex("CuentaIvaDebitoId");
+
+                    b.HasIndex("CuentaProveedoresId");
+
+                    b.HasIndex("CuentaVentasId");
+
+                    b.HasIndex("EmpresaId", "TipoDte")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracionesContablesAutomaticas");
+                });
+
             modelBuilder.Entity("SistemaContableDTE.Models.CuentaContable", b =>
                 {
                     b.Property<int>("CuentaContableId")
@@ -304,6 +391,9 @@ namespace SistemaContable.App.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ClienteContableId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("CodigoGeneracion")
                         .IsRequired()
                         .HasMaxLength(36)
@@ -347,6 +437,8 @@ namespace SistemaContable.App.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("DocumentoDteId");
+
+                    b.HasIndex("ClienteContableId");
 
                     b.HasIndex("DocumentoRelacionadoId");
 
@@ -1064,6 +1156,68 @@ namespace SistemaContable.App.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("SistemaContableDTE.Models.ClienteContable", b =>
+                {
+                    b.HasOne("Empresa", "Empresa")
+                        .WithMany()
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Empresa");
+                });
+
+            modelBuilder.Entity("SistemaContableDTE.Models.ConfiguracionContableAutomatica", b =>
+                {
+                    b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaClientes")
+                        .WithMany()
+                        .HasForeignKey("CuentaClientesId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaCompras")
+                        .WithMany()
+                        .HasForeignKey("CuentaComprasId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaIvaAcreditable")
+                        .WithMany()
+                        .HasForeignKey("CuentaIvaAcreditableId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaIvaDebito")
+                        .WithMany()
+                        .HasForeignKey("CuentaIvaDebitoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaProveedores")
+                        .WithMany()
+                        .HasForeignKey("CuentaProveedoresId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaVentas")
+                        .WithMany()
+                        .HasForeignKey("CuentaVentasId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Empresa", null)
+                        .WithMany()
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CuentaClientes");
+
+                    b.Navigation("CuentaCompras");
+
+                    b.Navigation("CuentaIvaAcreditable");
+
+                    b.Navigation("CuentaIvaDebito");
+
+                    b.Navigation("CuentaProveedores");
+
+                    b.Navigation("CuentaVentas");
+                });
+
             modelBuilder.Entity("SistemaContableDTE.Models.CuentaContable", b =>
                 {
                     b.HasOne("SistemaContableDTE.Models.CuentaContable", "CuentaPadre")
@@ -1113,6 +1267,11 @@ namespace SistemaContable.App.Migrations
 
             modelBuilder.Entity("SistemaContableDTE.Models.DocumentoDte", b =>
                 {
+                    b.HasOne("SistemaContableDTE.Models.ClienteContable", "ClienteContable")
+                        .WithMany("DocumentosDte")
+                        .HasForeignKey("ClienteContableId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SistemaContableDTE.Models.DocumentoDte", "DocumentoRelacionado")
                         .WithMany()
                         .HasForeignKey("DocumentoRelacionadoId")
@@ -1123,6 +1282,8 @@ namespace SistemaContable.App.Migrations
                         .HasForeignKey("EmpresaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ClienteContable");
 
                     b.Navigation("DocumentoRelacionado");
 
@@ -1410,6 +1571,11 @@ namespace SistemaContable.App.Migrations
                     b.Navigation("Rol");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("SistemaContableDTE.Models.ClienteContable", b =>
+                {
+                    b.Navigation("DocumentosDte");
                 });
 
             modelBuilder.Entity("SistemaContableDTE.Models.DocumentoDte", b =>

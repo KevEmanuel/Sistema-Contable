@@ -19,6 +19,7 @@ public class ReglaContable
 
     [StringLength(5)]
     public string? TipoDte{get;set;}
+
     public RolEmpresaDte? RolEmpresa{get;set;}
 
     [Required]
