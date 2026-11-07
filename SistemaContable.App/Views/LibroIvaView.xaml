@@ -7,191 +7,370 @@
         <vm:LibroIvaViewModel />
     </UserControl.DataContext>
 
-    <Grid Margin="30">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <!-- Identidad visual compartida con los otros módulos. -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#E2E8F0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#17365D"
+                                      BlurRadius="14"
+                                      ShadowDepth="2"
+                                      Opacity="0.08" />
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <Grid Grid.Row="0"
-              Margin="0,0,0,20">
-            <TextBlock Text="Libros de ventas y compras"
-                       FontSize="26"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center" />
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#294460" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
 
-            <Button Content="Volver al panel"
-                    Width="170"
-                    Height="32"
-                    HorizontalAlignment="Right"
-                    Click="VolverAlPanelPrincipal_Click" />
-        </Grid>
+        <Style x:Key="InputComboStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="7,4" />
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="Foreground" Value="#1E293B" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
 
-        <GroupBox Grid.Row="1"
-                  Header="Generar registro desde DTE validado o contabilizado"
-                  Margin="0,0,0,15">
-            <Grid Margin="15">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="150" />
-                </Grid.ColumnDefinitions>
+        <!-- Plantilla compartida: cada variante conserva su propio color. -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="39" />
+            <Setter Property="Padding" Value="15,0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#EAF1FB" />
+            <Setter Property="Foreground" Value="#214D85" />
+            <Setter Property="BorderBrush" Value="#D3E2F5" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonSurface"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.86" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.72" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-                <StackPanel Grid.Column="0"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="DTE disponible" />
-                    <ComboBox ItemsSource="{Binding DocumentosValidados}"
-                              SelectedItem="{Binding DocumentoSeleccionado}"
-                              Height="28"
-                              Margin="0,5,0,0">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding TipoDte}" />
-                                    <TextBlock Text=" | " />
-                                    <TextBlock Text="{Binding NumeroControl}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
+        <Style x:Key="PrimaryButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="#285AA2" />
+            <Setter Property="BorderBrush" Value="#285AA2" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
 
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="DTE original (para notas)" />
-                    <ComboBox ItemsSource="{Binding DocumentosRelacionables}"
-                              SelectedItem="{Binding DocumentoRelacionadoSeleccionado}"
-                              IsEnabled="{Binding EsNotaSeleccionada}"
-                              Height="28"
-                              Margin="0,5,0,0">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding TipoDte}" />
-                                    <TextBlock Text=" | " />
-                                    <TextBlock Text="{Binding NumeroControl}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
+        <Style x:Key="OutlineButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#C9D8EA" />
+            <Setter Property="Foreground" Value="#214D85" />
+        </Style>
 
-                <StackPanel Grid.Column="2"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Período contable" />
-                    <ComboBox ItemsSource="{Binding Periodos}"
-                              SelectedItem="{Binding PeriodoSeleccionado}"
-                              DisplayMemberPath="Nombre"
-                              Height="28"
-                              Margin="0,5,0,0" />
-                </StackPanel>
+        <!-- Tabla: mantiene todas las columnas originales y desplaza solo su contenido. -->
+        <Style x:Key="LedgerHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB" />
+            <Setter Property="Foreground" Value="#1F4E79" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="BorderBrush" Value="#D8E4F1" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
 
-                <Button Grid.Column="3"
-                        Content="Generar registro"
-                        Height="30"
-                        VerticalAlignment="Center"
-                        Command="{Binding GenerarCommand}" />
+        <Style x:Key="LedgerRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Foreground" Value="#1E293B" />
+            <Setter Property="BorderBrush" Value="#EAF0F6" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA" />
+                    <Setter Property="Foreground" Value="#17365D" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-                <TextBlock Grid.Row="1"
-                           Grid.Column="0"
-                           Grid.ColumnSpan="4"
-                           Text="{Binding TipoLibroSugerido}"
-                           Margin="0,12,0,0"
-                           Foreground="#1F4E79"
-                           TextWrapping="Wrap" />
-            </Grid>
-        </GroupBox>
+        <Style x:Key="LedgerCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+    </UserControl.Resources>
 
-        <Grid Grid.Row="2"
-              Margin="0,0,0,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+    <Grid Background="#F5F7FA">
+        <!-- Sin desplazamiento horizontal de toda la pantalla. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="28,26,28,28">
 
-            <TextBlock Grid.Column="0"
-                       Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
-                       TextWrapping="Wrap"
-                       VerticalAlignment="Center" />
+                <!-- Encabezado adaptable. -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                        <TextBlock Text="Libros de ventas y compras"
+                                   Foreground="#0F2442"
+                                   FontSize="27"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="Consultá y exportá los registros fiscales generados desde DTE."
+                                   Margin="0,5,0,0"
+                                   FontSize="12"
+                                   Foreground="#527092"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Content="Volver al panel"
+                            Width="150"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource OutlineButtonStyle}"
+                            Click="VolverAlPanelPrincipal_Click" />
+                </Grid>
 
-            <StackPanel Grid.Column="1"
-                        Orientation="Horizontal">
-                <Button Content="Actualizar"
-                        Width="100"
-                        Height="28"
-                        Margin="0,0,8,0"
-                        Command="{Binding CargarCommand}" />
-                <Button Content="Exportar compras"
-                        Width="130"
-                        Height="28"
-                        Margin="0,0,8,0"
-                        Click="ExportarCompras_Click" />
-                <Button Content="Exportar ventas"
-                        Width="120"
-                        Height="28"
-                        Click="ExportarVentas_Click" />
+                <!-- Generación de registros; dos columnas que se ajustan al ancho. -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Generar registro desde DTE validado o contabilizado"
+                                   Foreground="#214D85"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap" />
+                        <Grid Margin="0,17,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,16">
+                                <TextBlock Text="DTE disponible" Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding DocumentosValidados}"
+                                          SelectedItem="{Binding DocumentoSeleccionado}"
+                                          Style="{StaticResource InputComboStyle}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding TipoDte}" />
+                                                <TextBlock Text=" | " />
+                                                <TextBlock Text="{Binding NumeroControl}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,16">
+                                <TextBlock Text="DTE original (para notas)"
+                                           Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding DocumentosRelacionables}"
+                                          SelectedItem="{Binding DocumentoRelacionadoSeleccionado}"
+                                          IsEnabled="{Binding EsNotaSeleccionada}"
+                                          Style="{StaticResource InputComboStyle}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding TipoDte}" />
+                                                <TextBlock Text=" | " />
+                                                <TextBlock Text="{Binding NumeroControl}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Período contable"
+                                           Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding Periodos}"
+                                          SelectedItem="{Binding PeriodoSeleccionado}"
+                                          DisplayMemberPath="Nombre"
+                                          Style="{StaticResource InputComboStyle}" />
+                            </StackPanel>
+
+                            <Button Grid.Row="1" Grid.Column="1"
+                                    Content="Generar registro"
+                                    Width="176"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding GenerarCommand}" />
+
+                            <Border Grid.Row="2" Grid.ColumnSpan="2"
+                                    Background="#EDF4FC"
+                                    BorderBrush="#D8E7F8"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="12,10"
+                                    Margin="0,16,0,0">
+                                <TextBlock Text="{Binding TipoLibroSugerido}"
+                                           Foreground="#214D85"
+                                           TextWrapping="Wrap" />
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Mensaje del ViewModel, oculto si está vacío. -->
+                <Border Background="#FFF7ED"
+                        BorderBrush="#FED7AA"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="14,11"
+                        Margin="0,0,0,16">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Mensaje}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding Mensaje}"
+                               Foreground="#A34F0B"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <!-- Consulta y exportaciones. -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Registros de ventas y compras"
+                                   Foreground="#214D85"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,5" />
+                        <TextBlock Text="Desplazá horizontalmente la tabla para consultar todas las columnas."
+                                   Foreground="#64748B"
+                                   FontSize="12"
+                                   Margin="0,0,0,12" />
+
+                        <WrapPanel HorizontalAlignment="Right"
+                                   Margin="0,0,0,14">
+                            <Button Content="Actualizar"
+                                    Width="115"
+                                    Margin="0,0,8,8"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Command="{Binding CargarCommand}" />
+                            <Button Content="Exportar compras"
+                                    Width="156"
+                                    Margin="0,0,8,8"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Click="ExportarCompras_Click" />
+                            <Button Content="Exportar ventas"
+                                    Width="150"
+                                    Margin="0,0,0,8"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="ExportarVentas_Click" />
+                        </WrapPanel>
+
+                        <!-- El desplazamiento horizontal ocurre DENTRO del DataGrid. -->
+                        <DataGrid ItemsSource="{Binding Registros}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  Height="350"
+                                  MinHeight="260"
+                                  RowHeaderWidth="0"
+                                  BorderThickness="1"
+                                  BorderBrush="#E2E8F0"
+                                  Background="White"
+                                  RowBackground="White"
+                                  AlternatingRowBackground="#F7FAFD"
+                                  AlternationCount="2"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#EDF2F7"
+                                  ColumnHeaderStyle="{StaticResource LedgerHeaderStyle}"
+                                  RowStyle="{StaticResource LedgerRowStyle}"
+                                  CellStyle="{StaticResource LedgerCellStyle}"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Fecha"
+                                                    Binding="{Binding FechaRegistro, StringFormat=d}"
+                                                    Width="105" />
+                                <DataGridTextColumn Header="Código DTE"
+                                                    Binding="{Binding DocumentoDte.CodigoGeneracion}"
+                                                    Width="270" />
+                                <DataGridTextColumn Header="Número de control"
+                                                    Binding="{Binding DocumentoDte.NumeroControl}"
+                                                    Width="260" />
+                                <DataGridTextColumn Header="Tipo DTE"
+                                                    Binding="{Binding DocumentoDte.TipoDte}"
+                                                    Width="85" />
+                                <DataGridTextColumn Header="Cliente / proveedor"
+                                                    Binding="{Binding NombreTercero}"
+                                                    Width="225" />
+                                <DataGridTextColumn Header="NIT"
+                                                    Binding="{Binding NitTercero}"
+                                                    Width="150" />
+                                <DataGridTextColumn Header="NRC"
+                                                    Binding="{Binding NrcTercero}"
+                                                    Width="115" />
+                                <DataGridTextColumn Header="Libro"
+                                                    Binding="{Binding TipoLibro}"
+                                                    Width="185" />
+                                <DataGridTextColumn Header="Base gravada"
+                                                    Binding="{Binding BaseGravada, StringFormat=N2}"
+                                                    Width="115" />
+                                <DataGridTextColumn Header="Crédito fiscal"
+                                                    Binding="{Binding CreditoFiscal, StringFormat=N2}"
+                                                    Width="115" />
+                                <DataGridTextColumn Header="Débito fiscal"
+                                                    Binding="{Binding DebitoFiscal, StringFormat=N2}"
+                                                    Width="115" />
+                                <DataGridTextColumn Header="Total"
+                                                    Binding="{Binding TotalOperacion, StringFormat=N2}"
+                                                    Width="115" />
+                                <DataGridTextColumn Header="Estado"
+                                                    Binding="{Binding Estado}"
+                                                    Width="110" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
             </StackPanel>
-        </Grid>
-
-        <DataGrid Grid.Row="3"
-                  ItemsSource="{Binding Registros}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Fecha"
-                                    Binding="{Binding FechaRegistro,
-                                                      StringFormat=d}"
-                                    Width="100" />
-                <DataGridTextColumn Header="Código DTE"
-                                    Binding="{Binding DocumentoDte.CodigoGeneracion}"
-                                    Width="*" />
-                <DataGridTextColumn Header="Número de control"
-                                    Binding="{Binding DocumentoDte.NumeroControl}"
-                                    Width="180" />
-                <DataGridTextColumn Header="Tipo DTE"
-                                    Binding="{Binding DocumentoDte.TipoDte}"
-                                    Width="80" />
-                <DataGridTextColumn Header="Cliente / proveedor"
-                                    Binding="{Binding NombreTercero}"
-                                    Width="2*" />
-                <DataGridTextColumn Header="NIT"
-                                    Binding="{Binding NitTercero}"
-                                    Width="130" />
-                <DataGridTextColumn Header="NRC"
-                                    Binding="{Binding NrcTercero}"
-                                    Width="110" />
-                <DataGridTextColumn Header="Libro"
-                                    Binding="{Binding TipoLibro}"
-                                    Width="160" />
-                <DataGridTextColumn Header="Base gravada"
-                                    Binding="{Binding BaseGravada,
-                                                      StringFormat=N2}"
-                                    Width="120" />
-                <DataGridTextColumn Header="Crédito fiscal"
-                                    Binding="{Binding CreditoFiscal,
-                                                      StringFormat=N2}"
-                                    Width="120" />
-                <DataGridTextColumn Header="Débito fiscal"
-                                    Binding="{Binding DebitoFiscal,
-                                                      StringFormat=N2}"
-                                    Width="120" />
-                <DataGridTextColumn Header="Total"
-                                    Binding="{Binding TotalOperacion,
-                                                      StringFormat=N2}"
-                                    Width="120" />
-                <DataGridTextColumn Header="Estado"
-                                    Binding="{Binding Estado}"
-                                    Width="100" />
-            </DataGrid.Columns>
-        </DataGrid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

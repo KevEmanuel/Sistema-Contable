@@ -7,33 +7,76 @@
         <vm:PanelPrincipalViewModel/>
     </UserControl.DataContext>
 
-    <UserControl.Resources>
-        <Style x:Key="ModuleCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#D0D7DE"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,14,0"/>
-        </Style>
 
-        <Style x:Key="ModuleButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="Margin" Value="0,8,0,0"/>
-            <Setter Property="Padding" Value="10,0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Background" Value="#F5F7FA"/>
-            <Setter Property="BorderBrush" Value="#D0D7DE"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E8F1F8"/>
-                    <Setter Property="BorderBrush" Value="#1F4E79"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </UserControl.Resources>
+<UserControl.Resources>
+    <!-- Tarjetas de los módulos -->
+    <Style x:Key="ModuleCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="14"/>
+        <Setter Property="Padding" Value="24"/>
+        <Setter Property="Margin" Value="0,0,16,0"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#17365D"
+                                  BlurRadius="16"
+                                  ShadowDepth="3"
+                                  Opacity="0.10"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Botones modernos -->
+    <Style x:Key="ModuleButtonStyle" TargetType="Button">
+        <Setter Property="Height" Value="42"/>
+        <Setter Property="Margin" Value="0,9,0,0"/>
+        <Setter Property="Padding" Value="14,0"/>
+        <Setter Property="Background" Value="#EAF1FB"/>
+        <Setter Property="BorderBrush" Value="#D3E2F5"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="#214D85"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="ButtonBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <ContentPresenter
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Margin="{TemplateBinding Padding}"
+                            RecognizesAccessKey="True"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonBorder"
+                                    Property="Background"
+                                    Value="#285AA2"/>
+                            <Setter Property="Foreground"
+                                    Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ButtonBorder"
+                                    Property="Background"
+                                    Value="#173D73"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</UserControl.Resources>
+
 
     <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
@@ -41,27 +84,75 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0"
-                Background="#1F4E79">
-            <Grid Margin="25,0">
-                <TextBlock Text="Sistema Contable DTE"
-                           Foreground="White"
-                           FontSize="22"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center"/>
+        
+<!-- Encabezado principal moderno -->
+<Border Grid.Row="0"
+        BorderBrush="#173B65"
+        BorderThickness="0,0,0,1">
 
-                <StackPanel HorizontalAlignment="Right"
-                            VerticalAlignment="Center">
-                    <TextBlock Text="{Binding NombreUsuario}"
-                               Foreground="White"
-                               HorizontalAlignment="Right"/>
-                    <TextBlock Text="{Binding CorreoUsuario}"
-                               Foreground="#D9EAF7"
-                               FontSize="12"
-                               HorizontalAlignment="Right"/>
-                </StackPanel>
-            </Grid>
+    <Border.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#17365D" Offset="0"/>
+            <GradientStop Color="#285AA2" Offset="1"/>
+        </LinearGradientBrush>
+    </Border.Background>
+
+    <Grid Margin="28,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Emblema -->
+        <Border Grid.Column="0"
+                Width="44"
+                Height="44"
+                CornerRadius="12"
+                Background="#416DA8"
+                VerticalAlignment="Center">
+            <TextBlock Text="DTE"
+                       FontSize="15"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
         </Border>
+
+        <!-- Título -->
+        <StackPanel Grid.Column="1"
+                    Margin="16,0,0,0"
+                    VerticalAlignment="Center">
+            <TextBlock Text="Sistema Contable DTE"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Foreground="White"/>
+
+            <TextBlock Text="Gestión contable y fiscal"
+                       FontSize="12"
+                       Foreground="#D6E6FA"
+                       Margin="0,3,0,0"/>
+        </StackPanel>
+
+        <!-- Información del usuario -->
+        <StackPanel Grid.Column="2"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right">
+
+            <TextBlock Text="{Binding NombreUsuario}"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       HorizontalAlignment="Right"/>
+
+            <TextBlock Text="{Binding CorreoUsuario}"
+                       FontSize="12"
+                       Foreground="#D6E6FA"
+                       HorizontalAlignment="Right"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+    </Grid>
+</Border>
 
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto">
@@ -83,9 +174,35 @@
 
                     <Border Grid.Column="0" Style="{StaticResource ModuleCardStyle}">
                         <StackPanel>
-                            <TextBlock Text="Carga de DTE"
-                                       FontSize="18"
-                                       FontWeight="Bold"/>
+                        
+<StackPanel Orientation="Horizontal"
+            VerticalAlignment="Center">
+
+    <Border Width="40"
+            Height="40"
+            CornerRadius="10"
+            Background="#EAF1FB"
+            Margin="0,0,12,0">
+
+        <Viewbox Width="23" Height="23">
+            <Canvas Width="24" Height="24">
+                <Path Data="M 6,2 L 14,2 L 19,7 L 19,21 L 6,21 Z
+                            M 14,2 L 14,7 L 19,7
+                            M 9,12 L 16,12
+                            M 9,16 L 16,16"
+                      Stroke="#285AA2"
+                      StrokeThickness="1.8"
+                      StrokeLineJoin="Round"/>
+            </Canvas>
+        </Viewbox>
+    </Border>
+
+    <TextBlock Text="Carga de DTE"
+               FontSize="18"
+               FontWeight="Bold"
+               VerticalAlignment="Center"/>
+</StackPanel>
+
                             <TextBlock Text="Importación y revisión de documentos tributarios."
                                        Margin="0,10,0,0"
                                        TextWrapping="Wrap"
@@ -101,9 +218,38 @@
 
                     <Border Grid.Column="1" Style="{StaticResource ModuleCardStyle}">
                         <StackPanel>
-                            <TextBlock Text="Contabilidad"
-                                       FontSize="18"
-                                       FontWeight="Bold"/>
+
+                        
+<StackPanel Orientation="Horizontal"
+            VerticalAlignment="Center">
+
+    <Border Width="40"
+            Height="40"
+            CornerRadius="10"
+            Background="#EAF1FB"
+            Margin="0,0,12,0">
+
+        <Viewbox Width="23" Height="23">
+            <Canvas Width="24" Height="24">
+                <Path Data="M 5,2 L 19,2 L 19,22 L 5,22 Z
+                            M 8,5 L 16,5 L 16,10 L 8,10 Z
+                            M 8,14 L 10,14
+                            M 14,14 L 16,14
+                            M 8,18 L 10,18
+                            M 14,18 L 16,18"
+                      Stroke="#285AA2"
+                      StrokeThickness="1.8"
+                      StrokeLineJoin="Round"/>
+            </Canvas>
+        </Viewbox>
+    </Border>
+
+    <TextBlock Text="Contabilidad"
+               FontSize="18"
+               FontWeight="Bold"
+               VerticalAlignment="Center"/>
+</StackPanel>
+
                             <TextBlock Text="Genera partidas y libros desde los DTE."
                                        Margin="0,10,0,0"
                                        TextWrapping="Wrap"
@@ -130,9 +276,39 @@
                             Style="{StaticResource ModuleCardStyle}"
                             Margin="0">
                         <StackPanel>
-                            <TextBlock Text="Libros fiscales"
-                                       FontSize="18"
-                                       FontWeight="Bold"/>
+
+                        
+<StackPanel Orientation="Horizontal"
+            VerticalAlignment="Center">
+
+    <Border Width="40"
+            Height="40"
+            CornerRadius="10"
+            Background="#EAF1FB"
+            Margin="0,0,12,0">
+
+        <Viewbox Width="23" Height="23">
+            <Canvas Width="24" Height="24">
+                <Path Data="M 12,5 C 9,3 6,3 3,4
+                            L 3,19
+                            C 7,18 10,19 12,21
+                            C 14,19 17,18 21,19
+                            L 21,4
+                            C 18,3 15,3 12,5 Z
+                            M 12,5 L 12,21"
+                      Stroke="#285AA2"
+                      StrokeThickness="1.8"
+                      StrokeLineJoin="Round"/>
+            </Canvas>
+        </Viewbox>
+    </Border>
+
+    <TextBlock Text="Libros fiscales"
+               FontSize="18"
+               FontWeight="Bold"
+               VerticalAlignment="Center"/>
+</StackPanel>
+
                             <TextBlock Text="Libros de ventas y compras, exportaciones y auditoría."
                                        Margin="0,10,0,0"
                                        TextWrapping="Wrap"
