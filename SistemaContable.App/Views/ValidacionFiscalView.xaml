@@ -7,305 +7,470 @@
         <vm:ValidacionFiscalViewModel />
     </UserControl.DataContext>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="30">
+    <UserControl.Resources>
+        <!-- Identidad visual coherente con el panel principal -->
+        <Style x:Key="SectionCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#17365D"
+                                      BlurRadius="14"
+                                      ShadowDepth="2"
+                                      Opacity="0.08"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <Grid Margin="0,0,0,20">
-                <TextBlock Text="Validación fiscal de DTE"
-                           FontSize="26"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center" />
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1F4E79"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
 
-                <Button Content="Volver al panel"
-                        Width="170"
-                        Height="32"
-                        HorizontalAlignment="Right"
-                        Click="VolverAlPanelPrincipal_Click" />
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#334B67"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="FieldTextBoxStyle" TargetType="TextBox">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Padding" Value="9,6"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="FieldComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="FieldDatePickerStyle" TargetType="DatePicker">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Un solo template para todas las variantes, sin modificar Command ni Click -->
+        <Style x:Key="ButtonBaseStyle" TargetType="Button">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="13,0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#285AA2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#285AA2"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="BorderBrush" Value="#86A8D2"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.83"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}"/>
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#285AA2"/>
+            <Setter Property="BorderBrush" Value="#D3E2F5"/>
+        </Style>
+        <Style x:Key="OutlineButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#214D85"/>
+            <Setter Property="BorderBrush" Value="#D3E2F5"/>
+        </Style>
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+            <Setter Property="Background" Value="#FEECEC"/>
+            <Setter Property="Foreground" Value="#B42318"/>
+            <Setter Property="BorderBrush" Value="#F5B5B0"/>
+        </Style>
+
+        <Style x:Key="ModernGridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#1F4E79"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="BorderBrush" Value="#D8E4F1"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+
+        <Style x:Key="ModernGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Foreground" Value="#263B55"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA"/>
+                    <Setter Property="Foreground" Value="#17365D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ModernGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="7,5"/>
+            <Setter Property="BorderBrush" Value="#EDF2F7"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+
+        <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="BorderBrush" Value="#DFE8F2"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="AlternatingRowBackground" Value="#F8FAFC"/>
+            <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernGridHeaderStyle}"/>
+            <Setter Property="RowStyle" Value="{StaticResource ModernGridRowStyle}"/>
+            <Setter Property="CellStyle" Value="{StaticResource ModernGridCellStyle}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Se desplaza verticalmente toda la vista, pero nunca horizontalmente. -->
+    <ScrollViewer Background="#F5F7FA"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="26,24,26,30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Encabezado -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <TextBlock Text="Validación fiscal de DTE"
+                               FontSize="27" FontWeight="Bold"
+                               Foreground="#0F2340"/>
+                    <TextBlock Text="Gestioná evidencias, eventos y estados de tus documentos tributarios."
+                               FontSize="12.5" Foreground="#58739A"
+                               TextWrapping="Wrap" Margin="0,5,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="Volver al panel"
+                        Width="150" VerticalAlignment="Top"
+                        Style="{StaticResource OutlineButtonStyle}"
+                        Click="VolverAlPanelPrincipal_Click"/>
             </Grid>
 
-            <Button Content="Actualizar documentos"
-                    Width="170"
-                    Height="30"
-                    HorizontalAlignment="Right"
-                    Margin="0,0,0,10"
-                    Command="{Binding CargarCommand}" />
-
-            <DataGrid ItemsSource="{Binding Documentos}"
-                      SelectedItem="{Binding DocumentoSeleccionado,
-                                             Mode=TwoWay}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      CanUserAddRows="False"
-                      SelectionMode="Single"
-                      Height="180"
-                      Margin="0,0,0,15">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Fecha"
-                                        Binding="{Binding FechaEmision,
-                                                          StringFormat=d}"
-                                        Width="100" />
-                    <DataGridTextColumn Header="Tipo"
-                                        Binding="{Binding TipoDte}"
-                                        Width="70" />
-                    <DataGridTextColumn Header="Código de generación"
-                                        Binding="{Binding CodigoGeneracion}"
-                                        Width="*" />
-                    <DataGridTextColumn Header="Estado"
-                                        Binding="{Binding Estado}"
-                                        Width="150" />
-                </DataGrid.Columns>
-            </DataGrid>
-
-            <TextBlock Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,12" />
-
-            <GroupBox Header="Registrar evidencia de Hacienda"
-                      Margin="0,0,0,15">
-                <Grid Margin="15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               Grid.Column="0"
-                               Grid.ColumnSpan="3"
-                               Text="Al seleccionar un DTE se completan los datos disponibles en su JSON. Usa Consultar estado en Hacienda para obtener y guardar el estado oficial. Las comprobaciones locales de estructura e importes se ejecutan por separado y pueden dejar el DTE pendiente de validación local."
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,10" />
-
-                    <StackPanel Grid.Row="1"
-                                Grid.Column="0"
-                                Margin="0,0,12,10">
-                        <TextBlock Text="Fuente" />
-                        <ComboBox ItemsSource="{Binding FuentesEvidencia}"
-                                  SelectedItem="{Binding FuenteSeleccionada}"
-                                  Height="28"
-                                  Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="1"
-                                Grid.Column="1"
-                                Margin="0,0,12,10">
-                        <TextBlock Text="Estado solicitado del DTE" />
-                        <ComboBox ItemsSource="{Binding EstadosDocumento}"
-                                  SelectedItem="{Binding EstadoDocumentoSeleccionado}"
-                                  Height="28"
-                                  Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="1"
-                                Grid.Column="2"
-                                Margin="0,0,0,10">
-                        <TextBlock Text="Fecha de procesamiento" />
-                        <DatePicker SelectedDate="{Binding FechaProcesamiento}"
-                                    Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="2"
-                                Grid.Column="0"
-                                Margin="0,0,12,10">
-                        <TextBlock Text="Sello recibido" />
-                        <TextBox Text="{Binding SelloRecibido}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="2"
-                                Grid.Column="1"
-                                Margin="0,0,12,10">
-                        <TextBlock Text="Estado Hacienda" />
-                        <TextBox Text="{Binding EstadoHacienda}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="2"
-                                Grid.Column="2"
-                                Margin="0,0,0,10">
-                        <TextBlock Text="Código de respuesta" />
-                        <TextBox Text="{Binding CodigoMensaje}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="3"
-                                Grid.Column="0"
-                                Margin="0,0,12,10">
-                        <TextBlock Text="Descripción de Respuesta de Hacienda" />
-                        <TextBox Text="{Binding DescripcionMensaje}"
-                                 Height="52"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="3"
-                                Grid.Column="1"
-                                Margin="0,0,12,10">
-                        <TextBlock Text="Observaciones o mensaje" />
-                        <TextBox Text="{Binding Observaciones}"
-                                 Height="52"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="3"
-                                Grid.Column="2"
-                                VerticalAlignment="Bottom">
-                        <Button Content="Guardar evidencia"
-                                Height="32"
-                                Command="{Binding RegistrarEvidenciaCommand}" />
-                        <Button Content="Actualizar evidencia seleccionada"
-                                Height="32"
-                                Margin="0,6,0,0"
-                                Command="{Binding ActualizarEvidenciaCommand}" />
-                        <Button Content="Consultar estado en Hacienda y registrar"
-                                Height="36"
-                                Margin="0,6,0,0"
-                                Command="{Binding ConsultarEstadoHaciendaCommand}" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="4"
-                                Grid.Column="0"
-                                Grid.ColumnSpan="3">
-                        <TextBlock Text="Respuesta de Hacienda (si está incluida en el archivo)" />
-                        <TextBox Text="{Binding RespuestaJson}"
-                                 Height="90"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-                </Grid>
-            </GroupBox>
-
-            <GroupBox Header="Registrar evento del DTE"
-                      Margin="0,0,0,15">
-                <Grid Margin="15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="170" />
-                        <ColumnDefinition Width="180" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Tipo de evento" />
-                        <TextBox Text="{Binding TipoEvento}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="1"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Estado del evento" />
-                        <TextBox Text="{Binding EstadoEvento}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Fecha del evento" />
-                        <DatePicker SelectedDate="{Binding FechaEvento}"
-                                    Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <Button Grid.Column="3"
-                            Content="Guardar evento"
-                            Height="30"
-                            VerticalAlignment="Bottom"
-                            Command="{Binding RegistrarEventoCommand}" />
-                </Grid>
-            </GroupBox>
-
-            <GroupBox Header="Historial de evidencias"
-                      Margin="0,0,0,15">
-                <StackPanel Margin="15">
-                    <DataGrid ItemsSource="{Binding Evidencias}"
-                              SelectedItem="{Binding EvidenciaSeleccionada}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False"
-                              SelectionMode="Single"
-                              Height="150"
-                              Margin="0,0,0,8">
+            <!-- DTE disponibles -->
+            <Border Grid.Row="1" Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Documentos disponibles"
+                                   Style="{StaticResource SectionTitleStyle}"
+                                   VerticalAlignment="Center" Margin="0"/>
+                        <Button Grid.Column="1" Content="Actualizar documentos"
+                                Width="175" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CargarCommand}"/>
+                    </Grid>
+                    <DataGrid ItemsSource="{Binding Documentos}"
+                              SelectedItem="{Binding DocumentoSeleccionado, Mode=TwoWay}"
+                              Style="{StaticResource ModernDataGridStyle}"
+                              Height="175">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Fecha"
-                                                Binding="{Binding FechaProcesamiento,
-                                                                  StringFormat=g}"
-                                                Width="150" />
+                                                Binding="{Binding FechaEmision, StringFormat=d}"
+                                                Width="115"/>
+                            <DataGridTextColumn Header="Tipo"
+                                                Binding="{Binding TipoDte}"
+                                                Width="85"/>
+                            <DataGridTextColumn Header="Código de generación"
+                                                Binding="{Binding CodigoGeneracion}"
+                                                Width="460"/>
+                            <DataGridTextColumn Header="Estado"
+                                                Binding="{Binding Estado}"
+                                                Width="180"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Mensaje contextual. No ocupa espacio cuando está vacío. -->
+            <Border Grid.Row="2" Margin="0,0,0,16" Padding="13,11"
+                    CornerRadius="9" Background="#EFF6FF"
+                    BorderBrush="#D7E8FC" BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Mensaje}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding Mensaje}" Foreground="#214F86"
+                           FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Evidencia de Hacienda -->
+            <Border Grid.Row="3" Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Registrar evidencia de Hacienda"
+                               Style="{StaticResource SectionTitleStyle}"/>
+                    <TextBlock Text="Al seleccionar un DTE se completan los datos disponibles en su JSON. Usa Consultar estado en Hacienda para obtener y guardar el estado oficial. Las comprobaciones locales de estructura e importes se ejecutan por separado y pueden dejar el DTE pendiente de validación local."
+                               Foreground="#64748B" FontSize="12.5" TextWrapping="Wrap"
+                               Margin="0,0,0,18"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,15">
+                            <TextBlock Text="Fuente" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding FuentesEvidencia}"
+                                      SelectedItem="{Binding FuenteSeleccionada}"
+                                      Style="{StaticResource FieldComboBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,15">
+                            <TextBlock Text="Estado solicitado del DTE" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding EstadosDocumento}"
+                                      SelectedItem="{Binding EstadoDocumentoSeleccionado}"
+                                      Style="{StaticResource FieldComboBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Fecha de procesamiento" Style="{StaticResource FieldLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding FechaProcesamiento}"
+                                        Style="{StaticResource FieldDatePickerStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,15">
+                            <TextBlock Text="Sello recibido" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding SelloRecibido}"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,15">
+                            <TextBlock Text="Estado Hacienda" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding EstadoHacienda}"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                            <TextBlock Text="Código de respuesta" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding CodigoMensaje}"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,15">
+                            <TextBlock Text="Descripción de Respuesta de Hacienda"
+                                       Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding DescripcionMensaje}"
+                                     Height="93" AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     VerticalContentAlignment="Top"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,12,15">
+                            <TextBlock Text="Observaciones o mensaje" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding Observaciones}"
+                                     Height="93" AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     VerticalContentAlignment="Top"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15"
+                                    VerticalAlignment="Bottom">
+                            <Button Content="Guardar evidencia"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding RegistrarEvidenciaCommand}"/>
+                            <Button Content="Actualizar evidencia seleccionada"
+                                    Margin="0,7,0,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding ActualizarEvidenciaCommand}"/>
+                            <Button Margin="0,7,0,0" Height="42"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding ConsultarEstadoHaciendaCommand}">
+                                <TextBlock Text="Consultar estado en Hacienda y registrar"
+                                           TextWrapping="Wrap" TextAlignment="Center"/>
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">
+                            <TextBlock Text="Respuesta de Hacienda (si está incluida en el archivo)"
+                                       Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding RespuestaJson}"
+                                     Height="100" AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top"
+                                     VerticalScrollBarVisibility="Auto" FontFamily="Consolas"
+                                     FontSize="12" Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Eventos del DTE -->
+            <Border Grid.Row="4" Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Registrar evento del DTE"
+                               Style="{StaticResource SectionTitleStyle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="Tipo de evento" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding TipoEvento}"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                            <TextBlock Text="Estado del evento" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox Text="{Binding EstadoEvento}"
+                                     Style="{StaticResource FieldTextBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                            <TextBlock Text="Fecha del evento" Style="{StaticResource FieldLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding FechaEvento}"
+                                        Style="{StaticResource FieldDatePickerStyle}"/>
+                        </StackPanel>
+                        <Button Grid.Column="3" Content="Guardar evento"
+                                VerticalAlignment="Bottom" Width="150"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding RegistrarEventoCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Historial de evidencias -->
+            <Border Grid.Row="5" Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Historial de evidencias"
+                               Style="{StaticResource SectionTitleStyle}"/>
+                    <DataGrid ItemsSource="{Binding Evidencias}"
+                              SelectedItem="{Binding EvidenciaSeleccionada}"
+                              Style="{StaticResource ModernDataGridStyle}"
+                              Height="175" Margin="0,0,0,12">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Fecha"
+                                                Binding="{Binding FechaProcesamiento, StringFormat=g}"
+                                                Width="180"/>
                             <DataGridTextColumn Header="Fuente"
                                                 Binding="{Binding Fuente}"
-                                                Width="140" />
+                                                Width="160"/>
                             <DataGridTextColumn Header="Estado Hacienda"
                                                 Binding="{Binding EstadoHacienda}"
-                                                Width="150" />
+                                                Width="180"/>
                             <DataGridTextColumn Header="Sello"
                                                 Binding="{Binding SelloRecibido}"
-                                                Width="*" />
+                                                Width="400"/>
                         </DataGrid.Columns>
                     </DataGrid>
                     <Button Content="Eliminar evidencia seleccionada"
-                            Width="230"
-                            Height="30"
-                            HorizontalAlignment="Right"
-                            Command="{Binding EliminarEvidenciaCommand}" />
+                            HorizontalAlignment="Right" Width="245"
+                            Style="{StaticResource DangerButtonStyle}"
+                            Command="{Binding EliminarEvidenciaCommand}"/>
                 </StackPanel>
-            </GroupBox>
+            </Border>
 
-            <GroupBox Header="Historial de eventos del DTE"
-                      Margin="0,0,0,15">
-                <StackPanel Margin="15">
+            <!-- Historial de eventos -->
+            <Border Grid.Row="6" Style="{StaticResource SectionCardStyle}" Margin="0">
+                <StackPanel>
+                    <TextBlock Text="Historial de eventos del DTE"
+                               Style="{StaticResource SectionTitleStyle}"/>
                     <DataGrid ItemsSource="{Binding Eventos}"
                               SelectedItem="{Binding EventoSeleccionado}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False"
-                              SelectionMode="Single"
-                              Height="150"
-                              Margin="0,0,0,8">
+                              Style="{StaticResource ModernDataGridStyle}"
+                              Height="170" Margin="0,0,0,12">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Fecha"
-                                                Binding="{Binding FechaEvento,
-                                                                  StringFormat=g}"
-                                                Width="150" />
+                                                Binding="{Binding FechaEvento, StringFormat=g}"
+                                                Width="180"/>
                             <DataGridTextColumn Header="Tipo"
                                                 Binding="{Binding TipoEvento}"
-                                                Width="*" />
+                                                Width="360"/>
                             <DataGridTextColumn Header="Estado"
                                                 Binding="{Binding EstadoEvento}"
-                                                Width="180" />
+                                                Width="220"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Actualizar evento seleccionado"
-                                Height="30"
-                                Margin="0,0,8,0"
-                                Command="{Binding ActualizarEventoCommand}" />
+                                Margin="0,0,9,0" Width="235"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding ActualizarEventoCommand}"/>
                         <Button Content="Eliminar evento seleccionado"
-                                Height="30"
-                                Command="{Binding EliminarEventoCommand}" />
+                                Width="225"
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding EliminarEventoCommand}"/>
                     </StackPanel>
                 </StackPanel>
-            </GroupBox>
-
-        </StackPanel>
+            </Border>
+        </Grid>
     </ScrollViewer>
 </UserControl>

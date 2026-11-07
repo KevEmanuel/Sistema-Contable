@@ -7,188 +7,402 @@
         <vm:CargaDteViewModel/>
     </UserControl.DataContext>
 
-    <Grid Margin="30">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <!-- Identidad visual de los demás módulos del sistema -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#17365D"
+                                      BlurRadius="12"
+                                      ShadowDepth="2"
+                                      Opacity="0.08"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <Grid Grid.Row="0"
-              Margin="0,0,0,20">
-            <TextBlock Text="Carga de Documentos Tributarios Electrónicos"
-                       FontSize="26"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"/>
+        <Style x:Key="SectionHeadingStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#214F7A"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
 
-            <Button Content="Volver al panel"
-                    Width="170"
-                    Height="32"
-                    HorizontalAlignment="Right"
-                    Click="VolverAlPanelPrincipal_Click"/>
-        </Grid>
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#304866"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
 
-        <GroupBox Grid.Row="1"
-                  Header="Clientes a quienes se lleva la contabilidad"
-                  Margin="0,0,0,15">
-            <Grid Margin="15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="170"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+        <Style x:Key="FieldTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="9,5"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,10">
-                    <TextBlock Text="Nombre del cliente"/>
-                    <TextBox Text="{Binding NombreCliente,
-                                            UpdateSourceTrigger=PropertyChanged}"
-                             Margin="0,4,0,0"/>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,10">
-                    <TextBlock Text="NIT"/>
-                    <TextBox Text="{Binding NitCliente,
-                                            UpdateSourceTrigger=PropertyChanged}"
-                             Margin="0,4,0,0"/>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,10">
-                    <TextBlock Text="NRC (opcional)"/>
-                    <TextBox Text="{Binding NrcCliente,
-                                            UpdateSourceTrigger=PropertyChanged}"
-                             Margin="0,4,0,0"/>
-                </StackPanel>
-                <Button Grid.Row="0" Grid.Column="3"
-                        Content="Registrar cliente"
-                        Height="30"
-                        VerticalAlignment="Bottom"
-                        Margin="0,0,0,10"
-                        Command="{Binding AgregarClienteCommand}"/>
+        <Style x:Key="FieldComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+        </Style>
 
-                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Cliente para importar o asignar el DTE seleccionado (si no eliges uno, se intenta detectar por NIT/NRC)"/>
-                    <ComboBox ItemsSource="{Binding Clientes}"
-                              SelectedItem="{Binding ClienteSeleccionado}"
-                              DisplayMemberPath="Etiqueta"
-                              Margin="0,4,0,0"/>
-                </StackPanel>
-                <Button Grid.Row="1" Grid.Column="3"
-                        Content="Asignar al DTE"
-                        Height="30"
-                        VerticalAlignment="Bottom"
-                        Command="{Binding AsignarClienteCommand}"/>
+        <!-- La misma plantilla sirve para las acciones principales y secundarias. -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#214D85"/>
+            <Setter Property="BorderBrush" Value="#D3E2F5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonSurface"
+                                CornerRadius="8"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.86"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-                <StackPanel Grid.Row="2" Grid.ColumnSpan="4"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            Margin="0,10,0,0">
-                    <TextBlock Text="Para los JSON de prueba: "
-                               VerticalAlignment="Center"
-                               Margin="0,0,8,0"/>
-                    <Button Content="El cliente es el emisor"
-                            Height="30"
-                            Padding="10,0"
-                            Margin="0,0,8,0"
-                            Command="{Binding RegistrarEmisorComoClienteCommand}"/>
-                    <Button Content="El cliente es el receptor"
-                            Height="30"
-                            Padding="10,0"
-                            Command="{Binding RegistrarReceptorComoClienteCommand}"/>
-                </StackPanel>
-            </Grid>
-        </GroupBox>
+        <Style x:Key="PrimaryButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="#285AA2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#285AA2"/>
+        </Style>
 
-        <GroupBox Grid.Row="2"
-                  Header="Importar archivo JSON"
-                  Margin="0,0,0,15">
-            <Grid Margin="15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="180"/>
-                    <ColumnDefinition Width="150"/>
-                </Grid.ColumnDefinitions>
+        <Style x:Key="DangerButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="#FEECEC"/>
+            <Setter Property="Foreground" Value="#B42318"/>
+            <Setter Property="BorderBrush" Value="#F5B5B0"/>
+        </Style>
 
-                <TextBlock Grid.Column="0"
-                           Text="{Binding ArchivoSeleccionado}"
-                           VerticalAlignment="Center"
-                           Foreground="DimGray"
-                           TextTrimming="CharacterEllipsis"/>
+        <Style x:Key="GridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#214F7A"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="BorderBrush" Value="#D7E3F0"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
 
-                <Button Grid.Column="1"
-                        Content="Seleccionar JSON"
-                        Height="30"
-                        Margin="12,0"
-                        Click="SeleccionarArchivo_Click"/>
+        <Style x:Key="GridRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#27384F"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA"/>
+                    <Setter Property="Foreground" Value="#17365D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-                <Button Grid.Column="2"
-                        Content="Actualizar lista"
-                        Height="30"
-                        Command="{Binding CargarCommand}"/>
-            </Grid>
-        </GroupBox>
+        <Style x:Key="GridCellTextStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Style>
 
-        <TextBlock Grid.Row="3"
-                   Text="{Binding Mensaje}"
-                   Foreground="DarkRed"
-                   TextWrapping="Wrap"
-                   Margin="0,0,0,10"/>
+        <Style x:Key="MessageCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#EFF6FF"/>
+            <Setter Property="BorderBrush" Value="#D5E6FA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Mensaje}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
 
-        <DockPanel Grid.Row="4">
-            <Button DockPanel.Dock="Top"
-                    Content="Eliminar DTE seleccionado"
-                    Width="200"
-                    Height="30"
-                    HorizontalAlignment="Right"
-                    Margin="0,0,0,8"
-                    Command="{Binding EliminarCommand}" />
-            <DataGrid ItemsSource="{Binding Documentos}"
-                      SelectedItem="{Binding DocumentoSeleccionado,
-                                             Mode=TwoWay}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      CanUserAddRows="False"
-                      SelectionMode="Single">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Fecha"
-                                    Binding="{Binding FechaEmision,
-                                                      StringFormat=d}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Tipo DTE"
-                                    Binding="{Binding TipoDte}"
-                                    Width="90"/>
-                <DataGridTextColumn Header="Código de generación"
-                                    Binding="{Binding CodigoGeneracion}"
-                                    Width="*"/>
-                <DataGridTextColumn Header="Número de control"
-                                    Binding="{Binding NumeroControl}"
-                                    Width="180"/>
-                <DataGridTextColumn Header="Emisor del JSON"
-                                    Binding="{Binding EmisorDescripcion, Mode=OneWay}"
-                                    Width="220"/>
-                <DataGridTextColumn Header="Receptor del JSON"
-                                    Binding="{Binding ReceptorDescripcion, Mode=OneWay}"
-                                    Width="220"/>
-                <DataGridTextColumn Header="Rol empresa"
-                                    Binding="{Binding RolEmpresa}"
-                                    Width="130"/>
-                <DataGridTextColumn Header="Clasificación"
-                                    Binding="{Binding OperacionContableDescripcion, Mode=OneWay}"
-                                    Width="150"/>
-                <DataGridTextColumn Header="Cliente"
-                                    Binding="{Binding ClienteContable.Nombre, Mode=OneWay}"
-                                    Width="180"/>
-                <DataGridTextColumn Header="Estado"
-                                    Binding="{Binding Estado}"
-                                    Width="150"/>
-            </DataGrid.Columns>
-            </DataGrid>
-        </DockPanel>
+    <Grid Background="#F5F7FA">
+        <!-- La ventana se desplaza verticalmente, pero no horizontalmente. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="26,24,26,26">
+
+                <!-- Encabezado -->
+                <Grid Margin="0,0,0,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                        <TextBlock Text="Carga de Documentos Tributarios Electrónicos"
+                                   FontSize="25"
+                                   FontWeight="Bold"
+                                   Foreground="#10223E"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Text="Registrá clientes, importá documentos JSON y consultá los DTE cargados."
+                                   Margin="0,5,0,0"
+                                   FontSize="12"
+                                   Foreground="#617998"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Content="Volver al panel"
+                            Width="150"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Click="VolverAlPanelPrincipal_Click"/>
+                </Grid>
+
+                <!-- Registro y asignación de clientes -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Clientes a quienes se lleva la contabilidad"
+                                   Style="{StaticResource SectionHeadingStyle}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="1.2*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="Nombre del cliente" Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox Text="{Binding NombreCliente, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldTextBoxStyle}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                <TextBlock Text="NIT" Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox Text="{Binding NitCliente, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldTextBoxStyle}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="NRC (opcional)" Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox Text="{Binding NrcCliente, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldTextBoxStyle}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Button Content="Registrar cliente"
+                                Width="170"
+                                Margin="0,12,0,0"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding AgregarClienteCommand}"/>
+
+                        <Border Background="#EDF2F8"
+                                Height="1"
+                                Margin="0,16,0,16"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="160"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="Cliente para importar o asignar al DTE seleccionado (sin elegir uno, se intenta detectar por NIT/NRC)"
+                                           Style="{StaticResource FieldLabelStyle}"/>
+                                <ComboBox ItemsSource="{Binding Clientes}"
+                                          SelectedItem="{Binding ClienteSeleccionado}"
+                                          DisplayMemberPath="Etiqueta"
+                                          Style="{StaticResource FieldComboBoxStyle}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Content="Asignar al DTE"
+                                    VerticalAlignment="Bottom"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Command="{Binding AsignarClienteCommand}"/>
+                        </Grid>
+
+                        <WrapPanel HorizontalAlignment="Right" Margin="0,16,0,0">
+                            <TextBlock Text="Para los JSON de prueba:"
+                                       FontSize="12"
+                                       Foreground="#60738F"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,6"/>
+                            <Button Content="El cliente es el emisor"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Margin="0,0,8,6"
+                                    Command="{Binding RegistrarEmisorComoClienteCommand}"/>
+                            <Button Content="El cliente es el receptor"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Margin="0,0,0,6"
+                                    Command="{Binding RegistrarReceptorComoClienteCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Selección de JSON -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Importar archivo JSON"
+                                   Style="{StaticResource SectionHeadingStyle}"/>
+                        <TextBlock Text="Archivo seleccionado"
+                                   Style="{StaticResource FieldLabelStyle}"/>
+                        <Border Background="#F8FAFC"
+                                BorderBrush="#D9E4EF"
+                                BorderThickness="1"
+                                CornerRadius="7"
+                                Padding="10,8">
+                            <TextBlock Text="{Binding ArchivoSeleccionado}"
+                                       Foreground="#526783"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+                        <WrapPanel HorizontalAlignment="Right" Margin="0,12,0,0">
+                            <Button Content="Seleccionar JSON"
+                                    Width="160"
+                                    Margin="0,0,8,0"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="SeleccionarArchivo_Click"/>
+                            <Button Content="Actualizar lista"
+                                    Width="150"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Command="{Binding CargarCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Mensaje del ViewModel -->
+                <Border Style="{StaticResource MessageCardStyle}">
+                    <TextBlock Text="{Binding Mensaje}"
+                               TextWrapping="Wrap"
+                               Foreground="#285AA2"
+                               FontWeight="SemiBold"/>
+                </Border>
+
+                <!-- Documentos importados -->
+                <Border Style="{StaticResource CardStyle}" Margin="0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="Documentos DTE registrados"
+                                           Style="{StaticResource SectionHeadingStyle}"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock Text="Seleccioná un DTE para asignar un cliente o eliminarlo. Desplazá la tabla horizontalmente para ver todas las columnas."
+                                           FontSize="12"
+                                           Foreground="#617998"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Content="Eliminar DTE seleccionado"
+                                    Width="205"
+                                    VerticalAlignment="Top"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    Command="{Binding EliminarCommand}"/>
+                        </Grid>
+
+                        <!-- Columnas de ancho fijo: barra horizontal dentro de la tabla. -->
+                        <DataGrid ItemsSource="{Binding Documentos}"
+                                  SelectedItem="{Binding DocumentoSeleccionado, Mode=TwoWay}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  SelectionMode="Single"
+                                  HeadersVisibility="Column"
+                                  Height="310"
+                                  MinHeight="200"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.CanContentScroll="True"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderBrush="#E2E8F0"
+                                  BorderThickness="1"
+                                  Background="White"
+                                  RowBackground="White"
+                                  AlternatingRowBackground="#F8FAFC"
+                                  ColumnHeaderStyle="{StaticResource GridHeaderStyle}"
+                                  RowStyle="{StaticResource GridRowStyle}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Fecha"
+                                                    Binding="{Binding FechaEmision, StringFormat=d}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="110"/>
+                                <DataGridTextColumn Header="Tipo DTE"
+                                                    Binding="{Binding TipoDte}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="95"/>
+                                <DataGridTextColumn Header="Código de generación"
+                                                    Binding="{Binding CodigoGeneracion}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="300"/>
+                                <DataGridTextColumn Header="Número de control"
+                                                    Binding="{Binding NumeroControl}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="260"/>
+                                <DataGridTextColumn Header="Emisor del JSON"
+                                                    Binding="{Binding EmisorDescripcion, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="270"/>
+                                <DataGridTextColumn Header="Receptor del JSON"
+                                                    Binding="{Binding ReceptorDescripcion, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="270"/>
+                                <DataGridTextColumn Header="Rol empresa"
+                                                    Binding="{Binding RolEmpresa}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="130"/>
+                                <DataGridTextColumn Header="Clasificación"
+                                                    Binding="{Binding OperacionContableDescripcion, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="175"/>
+                                <DataGridTextColumn Header="Cliente"
+                                                    Binding="{Binding ClienteContable.Nombre, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="200"/>
+                                <DataGridTextColumn Header="Estado"
+                                                    Binding="{Binding Estado}"
+                                                    ElementStyle="{StaticResource GridCellTextStyle}"
+                                                    Width="140"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

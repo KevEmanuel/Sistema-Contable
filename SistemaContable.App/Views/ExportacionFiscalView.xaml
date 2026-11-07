@@ -7,112 +7,316 @@
         <vm:ExportacionFiscalViewModel />
     </UserControl.DataContext>
 
-    <Grid Margin="30">
+    <UserControl.Resources>
+        <!-- Tarjetas utilizadas en los módulos del sistema -->
+        <Style x:Key="SectionCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#17365D"
+                                      BlurRadius="14"
+                                      ShadowDepth="2"
+                                      Opacity="0.08"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#243B53"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,7"/>
+        </Style>
+
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Plantilla común: los estilos de cada botón definen sus colores -->
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="39"/>
+            <Setter Property="Padding" Value="15,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#285AA2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#285AA2"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.88"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource RoundedButtonStyle}">
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#214D85"/>
+            <Setter Property="BorderBrush" Value="#D3E2F5"/>
+        </Style>
+
+        <Style x:Key="BackButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource RoundedButtonStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#214D85"/>
+            <Setter Property="BorderBrush" Value="#CFDEF0"/>
+        </Style>
+
+        <Style x:Key="ModernGridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#1F4E79"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="BorderBrush" Value="#D8E4F1"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+
+        <Style x:Key="ModernGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA"/>
+                    <Setter Property="Foreground" Value="#17365D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ModernGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="9,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- La ventana se adapta: la tabla se desplaza sin ensanchar todo el formulario. -->
+    <Grid Background="#F5F7FA" Margin="24,20,24,24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
-              Margin="0,0,0,20">
-            <TextBlock Text="Exportaciones fiscales"
-                       FontSize="26"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center" />
+        <!-- Encabezado -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-            <Button Content="Volver al panel"
-                    Width="170"
-                    Height="32"
-                    HorizontalAlignment="Right"
-                    Click="VolverAlPanelPrincipal_Click" />
+            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                <TextBlock Text="Exportaciones fiscales"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#0F172A"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="Generá y guardá archivos CSV desde los libros de IVA."
+                           FontSize="12"
+                           Foreground="#64748B"
+                           Margin="0,5,0,0"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    Content="Volver al panel"
+                    Width="150"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource BackButtonStyle}"
+                    Click="VolverAlPanelPrincipal_Click"/>
         </Grid>
 
-        <GroupBox Grid.Row="1"
-                  Header="Generar archivo desde Libro IVA"
-                  Margin="0,0,0,15">
-            <Grid Margin="15">
+        <!-- Parámetros del archivo fiscal -->
+        <Border Grid.Row="1"
+                Style="{StaticResource SectionCardStyle}"
+                Margin="0,0,0,14">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="160" />
-                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="1.25*"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Período contable" />
+                <TextBlock Grid.Row="0"
+                           Grid.ColumnSpan="3"
+                           Text="Generar archivo desde Libro IVA"
+                           FontSize="17"
+                           FontWeight="Bold"
+                           Foreground="#1F4E79"
+                           Margin="0,0,0,18"/>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,14,0">
+                    <TextBlock Text="Período contable" Style="{StaticResource FieldLabelStyle}"/>
                     <ComboBox ItemsSource="{Binding Periodos}"
                               SelectedItem="{Binding PeriodoSeleccionado}"
                               DisplayMemberPath="Nombre"
-                              Height="28"
-                              Margin="0,5,0,0" />
+                              Style="{StaticResource ModernComboBoxStyle}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Libro IVA" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,14,0">
+                    <TextBlock Text="Libro IVA" Style="{StaticResource FieldLabelStyle}"/>
                     <ComboBox ItemsSource="{Binding TiposLibro}"
                               SelectedItem="{Binding TipoLibroSeleccionado}"
-                              Height="28"
-                              Margin="0,5,0,0" />
+                              Style="{StaticResource ModernComboBoxStyle}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Versión formato" />
+                <StackPanel Grid.Row="1" Grid.Column="2">
+                    <TextBlock Text="Versión formato" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBox Text="{Binding VersionFormato}"
-                             Height="28"
-                             Margin="0,5,0,0" />
+                             Style="{StaticResource ModernTextBoxStyle}"/>
                 </StackPanel>
 
-                <Button Grid.Column="3"
+                <Button Grid.Row="2" Grid.Column="2"
                         Content="Generar exportación"
-                        Height="30"
-                        VerticalAlignment="Bottom"
-                        Command="{Binding GenerarCommand}" />
+                        HorizontalAlignment="Stretch"
+                        Margin="0,15,0,0"
+                        Style="{StaticResource RoundedButtonStyle}"
+                        Command="{Binding GenerarCommand}"/>
             </Grid>
-        </GroupBox>
+        </Border>
 
-        <Grid Grid.Row="2"
-              Margin="0,0,0,10">
-            <TextBlock Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
-                       TextWrapping="Wrap" />
+        <!-- Estado y acciones -->
+        <Grid Grid.Row="2" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-            <Button Content="Guardar CSV seleccionado"
-                    Width="180"
-                    Height="28"
-                    HorizontalAlignment="Right"
-                    Click="GuardarArchivo_Click" />
+            <Border Grid.Column="0"
+                    Padding="13,9"
+                    Background="#FFF7ED"
+                    BorderBrush="#FED7AA"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Mensaje}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding Mensaje}"
+                           Foreground="#9A4F06"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+            </Border>
+
+            <Button Grid.Column="1"
+                    Content="Guardar CSV seleccionado"
+                    Width="205"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Click="GuardarArchivo_Click"/>
         </Grid>
 
-        <DataGrid Grid.Row="3"
-                  ItemsSource="{Binding Exportaciones}"
-                  SelectedItem="{Binding ExportacionSeleccionada,
-                                         Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Generado"
-                                    Binding="{Binding GeneradoEn,
-                                                      StringFormat=g}"
-                                    Width="150" />
-                <DataGridTextColumn Header="Anexo"
-                                    Binding="{Binding TipoAnexo}"
-                                    Width="220" />
-                <DataGridTextColumn Header="Versión"
-                                    Binding="{Binding VersionFormato}"
-                                    Width="100" />
-                <DataGridTextColumn Header="Archivo"
-                                    Binding="{Binding NombreArchivo}"
-                                    Width="*" />
-                <DataGridTextColumn Header="Hash SHA-256"
-                                    Binding="{Binding HashSha256}"
-                                    Width="250" />
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- Tabla con su propio desplazamiento horizontal -->
+        <Border Grid.Row="3" Style="{StaticResource SectionCardStyle}" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Archivos de exportación generados"
+                           FontSize="17"
+                           FontWeight="Bold"
+                           Foreground="#1F4E79"
+                           Margin="0,0,0,14"/>
+
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding Exportaciones}"
+                          SelectedItem="{Binding ExportacionSeleccionada, Mode=TwoWay}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#E5EDF5"
+                          BorderThickness="0"
+                          Background="White"
+                          RowBackground="White"
+                          AlternatingRowBackground="#F8FAFC"
+                          AlternationCount="2"
+                          ColumnHeaderStyle="{StaticResource ModernGridHeaderStyle}"
+                          RowStyle="{StaticResource ModernGridRowStyle}"
+                          CellStyle="{StaticResource ModernGridCellStyle}"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Generado"
+                                            Binding="{Binding GeneradoEn, StringFormat=g}"
+                                            Width="160"/>
+                        <DataGridTextColumn Header="Anexo"
+                                            Binding="{Binding TipoAnexo}"
+                                            Width="210"/>
+                        <DataGridTextColumn Header="Versión"
+                                            Binding="{Binding VersionFormato}"
+                                            Width="105"/>
+                        <DataGridTextColumn Header="Archivo"
+                                            Binding="{Binding NombreArchivo}"
+                                            Width="300"/>
+                        <DataGridTextColumn Header="Hash SHA-256"
+                                            Binding="{Binding HashSha256}"
+                                            Width="470"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
