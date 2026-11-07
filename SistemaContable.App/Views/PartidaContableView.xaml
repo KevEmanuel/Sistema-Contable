@@ -7,297 +7,414 @@
         <vm:PartidasContablesViewModel />
     </UserControl.DataContext>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="30">
+    <UserControl.Resources>
+        <!-- Tarjetas utilizadas en todos los módulos -->
+        <Style x:Key="SectionCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#E2E8F0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#17365D" BlurRadius="14"
+                                      ShadowDepth="2" Opacity="0.08" />
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <Grid Margin="0,0,0,20">
-                <TextBlock Text="Partidas contables manuales"
-                           FontSize="26"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center" />
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="#214D85" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
 
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#243B53" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1E293B" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1E293B" />
+        </Style>
+
+        <Style x:Key="ModernDateStyle" TargetType="DatePicker">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <!-- Plantilla común: conserva Content, Command y estado habilitado -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="#214D85" />
+            <Setter Property="Background" Value="#EAF1FB" />
+            <Setter Property="BorderBrush" Value="#D3E2F5" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonSurface"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.84" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.70" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.48" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="#285AA2" />
+            <Setter Property="BorderBrush" Value="#285AA2" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}" />
+
+        <Style x:Key="DangerButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="#FEECEC" />
+            <Setter Property="BorderBrush" Value="#F5B5B0" />
+            <Setter Property="Foreground" Value="#B42318" />
+        </Style>
+
+        <Style x:Key="BackButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#C9D8EA" />
+            <Setter Property="Width" Value="150" />
+        </Style>
+
+        <Style x:Key="ModernGridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB" />
+            <Setter Property="Foreground" Value="#1F4E79" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="BorderBrush" Value="#D8E4F1" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+
+        <Style x:Key="ModernGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="35" />
+            <Setter Property="Foreground" Value="#243B53" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA" />
+                    <Setter Property="Foreground" Value="#17365D" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ModernGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#E8EFF7" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F8FAFC" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernGridHeaderStyle}" />
+            <Setter Property="RowStyle" Value="{StaticResource ModernGridRowStyle}" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        </Style>
+
+        <!-- Oculta la franja de información cuando no hay mensaje -->
+        <Style x:Key="MessageBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FFF7ED" />
+            <Setter Property="BorderBrush" Value="#FED7AA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Mensaje}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer Background="#F5F7FA"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Auto">
+        <StackPanel Margin="30,26,30,24" MinWidth="850">
+
+            <!-- Título y retorno -->
+            <Grid Margin="0,0,0,22">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Partidas contables manuales"
+                               FontSize="28" FontWeight="Bold"
+                               Foreground="#0F172A" />
+                    <TextBlock Text="Registrá y administrá los movimientos contables"
+                               Foreground="#64748B" FontSize="12"
+                               Margin="0,4,0,0" />
+                </StackPanel>
                 <Button Content="Volver al panel"
-                        Width="170"
-                        Height="32"
                         HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource BackButtonStyle}"
                         Click="VolverAlPanelPrincipal_Click" />
             </Grid>
 
-            <GroupBox Header="Encabezado de la partida"
-                      Margin="0,0,0,15">
-                <Grid Margin="15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="3*" />
-                    </Grid.ColumnDefinitions>
+            <!-- Datos principales de la partida -->
+            <Border Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Encabezado de la partida"
+                               Style="{StaticResource SectionTitleStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="3*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                            <TextBlock Text="Fecha" Style="{StaticResource FieldLabelStyle}" />
+                            <DatePicker SelectedDate="{Binding Fecha}"
+                                        Style="{StaticResource ModernDateStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,14,0">
+                            <TextBlock Text="Período contable" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox ItemsSource="{Binding Periodos}"
+                                      SelectedItem="{Binding PeriodoSeleccionado}"
+                                      DisplayMemberPath="Nombre"
+                                      Style="{StaticResource ModernComboBoxStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Glosa *" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Glosa, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBoxStyle}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
-                    <StackPanel Grid.Column="0"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Fecha" />
-                        <DatePicker SelectedDate="{Binding Fecha}"
-                                    Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="1"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Período contable" />
-                        <ComboBox ItemsSource="{Binding Periodos}"
-                                  SelectedItem="{Binding PeriodoSeleccionado}"
-                                  DisplayMemberPath="Nombre"
-                                  Height="28"
-                                  Margin="0,5,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Glosa *" />
-                        <TextBox Text="{Binding Glosa,
-                                                UpdateSourceTrigger=PropertyChanged}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
-                    </StackPanel>
-                </Grid>
-            </GroupBox>
-
-            <GroupBox Header="Líneas de la partida"
-                      Margin="0,0,0,15">
-                <Grid Margin="15">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0"
-                          Margin="0,0,0,12">
+            <!-- Agregar y revisar líneas -->
+            <Border Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Líneas de la partida"
+                               Style="{StaticResource SectionTitleStyle}" />
+                    <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="115" />
+                            <ColumnDefinition Width="115" />
                             <ColumnDefinition Width="145" />
                         </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0"
-                                    Margin="0,0,12,0">
-                            <TextBlock Text="Cuenta contable" />
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="Cuenta contable" Style="{StaticResource FieldLabelStyle}" />
                             <ComboBox ItemsSource="{Binding Cuentas}"
                                       SelectedItem="{Binding CuentaSeleccionada}"
                                       DisplayMemberPath="Nombre"
-                                      Height="28"
-                                      Margin="0,5,0,0" />
+                                      Style="{StaticResource ModernComboBoxStyle}" />
                         </StackPanel>
-
-                        <StackPanel Grid.Column="1"
-                                    Margin="0,0,12,0">
-                            <TextBlock Text="Concepto" />
-                            <TextBox Text="{Binding Concepto,
-                                                    UpdateSourceTrigger=PropertyChanged}"
-                                     Height="28"
-                                     Margin="0,5,0,0" />
+                        <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                            <TextBlock Text="Concepto" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Concepto, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBoxStyle}" />
                         </StackPanel>
-
-                        <StackPanel Grid.Column="2"
-                                    Margin="0,0,12,0">
-                            <TextBlock Text="Debe" />
-                            <TextBox Text="{Binding Debe,
-                                                    UpdateSourceTrigger=PropertyChanged}"
-                                     Height="28"
-                                     Margin="0,5,0,0" />
+                        <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                            <TextBlock Text="Debe" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Debe, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBoxStyle}"
+                                     TextAlignment="Right" />
                         </StackPanel>
-
-                        <StackPanel Grid.Column="3"
-                                    Margin="0,0,12,0">
-                            <TextBlock Text="Haber" />
-                            <TextBox Text="{Binding Haber,
-                                                    UpdateSourceTrigger=PropertyChanged}"
-                                     Height="28"
-                                     Margin="0,5,0,0" />
+                        <StackPanel Grid.Column="3" Margin="0,0,12,0">
+                            <TextBlock Text="Haber" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding Haber, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBoxStyle}"
+                                     TextAlignment="Right" />
                         </StackPanel>
-
-                        <Button Grid.Column="4"
-                                Content="Agregar línea"
-                                Height="28"
+                        <Button Grid.Column="4" Content="Agregar línea"
                                 VerticalAlignment="Bottom"
+                                Style="{StaticResource PrimaryButtonStyle}"
                                 Command="{Binding AgregarLineaCommand}" />
                     </Grid>
 
-                    <Grid Grid.Row="1"
-                          Margin="0,0,0,10">
-                        <TextBlock Text="{Binding TotalDebe,
-                                                  StringFormat=Total Debe: {0:N2}}"
-                                   FontWeight="Bold" />
-
-                        <TextBlock Text="{Binding TotalHaber,
-                                                  StringFormat=Total Haber: {0:N2}}"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center" />
-
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Border Background="#EAF1FB" CornerRadius="9"
+                                    Padding="14,10" Margin="0,0,10,0">
+                                <TextBlock Text="{Binding TotalDebe, StringFormat='Total Debe: {0:N2}'}"
+                                           Foreground="#214D85" FontWeight="Bold" />
+                            </Border>
+                            <Border Background="#EAF7F1" CornerRadius="9" Padding="14,10">
+                                <TextBlock Text="{Binding TotalHaber, StringFormat='Total Haber: {0:N2}'}"
+                                           Foreground="#18734B" FontWeight="Bold" />
+                            </Border>
+                        </StackPanel>
                         <Button Content="Quitar línea seleccionada"
-                                Width="190"
-                                Height="28"
-                                HorizontalAlignment="Right"
+                                HorizontalAlignment="Right" Width="202"
+                                Style="{StaticResource DangerButtonStyle}"
                                 Command="{Binding QuitarLineaCommand}" />
                     </Grid>
 
-                    <DataGrid Grid.Row="2"
-                              ItemsSource="{Binding Lineas}"
-                              SelectedItem="{Binding LineaSeleccionada,
-                                                     Mode=TwoWay}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False"
-                              SelectionMode="Single"
-                              Height="180">
+                    <DataGrid ItemsSource="{Binding Lineas}"
+                              SelectedItem="{Binding LineaSeleccionada, Mode=TwoWay}"
+                              Style="{StaticResource ModernGridStyle}" Height="200">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Código"
-                                                Binding="{Binding CuentaContable.Codigo}"
-                                                Width="110" />
-                            <DataGridTextColumn Header="Cuenta"
-                                                Binding="{Binding CuentaContable.Nombre}"
-                                                Width="*" />
-                            <DataGridTextColumn Header="Concepto"
-                                                Binding="{Binding Concepto}"
-                                                Width="180" />
-                            <DataGridTextColumn Header="Debe"
-                                                Binding="{Binding Debe,
-                                                                  StringFormat=N2}"
-                                                Width="110" />
-                            <DataGridTextColumn Header="Haber"
-                                                Binding="{Binding Haber,
-                                                                  StringFormat=N2}"
-                                                Width="110" />
+                            <DataGridTextColumn Header="Código" Binding="{Binding CuentaContable.Codigo}" Width="110" />
+                            <DataGridTextColumn Header="Cuenta" Binding="{Binding CuentaContable.Nombre}" Width="2*" />
+                            <DataGridTextColumn Header="Concepto" Binding="{Binding Concepto}" Width="2*" />
+                            <DataGridTextColumn Header="Debe" Binding="{Binding Debe, StringFormat=N2}" Width="115" />
+                            <DataGridTextColumn Header="Haber" Binding="{Binding Haber, StringFormat=N2}" Width="115" />
                         </DataGrid.Columns>
                     </DataGrid>
-                </Grid>
-            </GroupBox>
+                </StackPanel>
+            </Border>
 
-            <StackPanel Orientation="Horizontal"
-                        Margin="0,0,0,10">
-                <Button Content="Guardar borrador"
-                        Width="160"
-                        Height="32"
-                        Margin="0,0,10,0"
-                        Command="{Binding GuardarBorradorCommand}" />
-
-                <Button Content="Crear y contabilizar"
-                        Width="170"
-                        Height="32"
-                        Command="{Binding ContabilizarCommand}" />
-
-                <Button Content="Actualizar lista"
-                        Width="140"
-                        Height="32"
-                        HorizontalAlignment="Right"
-                        Margin="25,0,0,0"
-                        Command="{Binding CargarCommand}" />
-            </StackPanel>
-
-            <TextBlock Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,12" />
-
-            <GroupBox Header="Partidas registradas"
-                      Margin="0,0,0,15">
-                <DataGrid ItemsSource="{Binding Partidas}"
-                          SelectedItem="{Binding PartidaSeleccionada,
-                                                 Mode=TwoWay}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          CanUserAddRows="False"
-                          SelectionMode="Single"
-                          Height="220"
-                          Margin="15">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="N°"
-                                            Binding="{Binding NumeroPartida}"
-                                            Width="60" />
-                        <DataGridTextColumn Header="Fecha"
-                                            Binding="{Binding Fecha,
-                                                              StringFormat=d}"
-                                            Width="100" />
-                        <DataGridTextColumn Header="Glosa"
-                                            Binding="{Binding Glosa}"
-                                            Width="*" />
-                        <DataGridTextColumn Header="Origen"
-                                            Binding="{Binding TipoOrigen}"
-                                            Width="100" />
-                        <DataGridTextColumn Header="Estado"
-                                            Binding="{Binding Estado}"
-                                            Width="140" />
-                        <DataGridTextColumn Header="Líneas"
-                                            Binding="{Binding Detalles.Count}"
-                                            Width="75" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </GroupBox>
-
-            <GroupBox Header="Acciones de la partida seleccionada"
-                      Margin="0,0,0,15">
-                <Grid Margin="15">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="150" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="170" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Partida seleccionada" />
-                        <TextBlock Text="{Binding PartidaSeleccionada.Glosa}"
-                                   FontWeight="Bold"
-                                   TextWrapping="Wrap"
-                                   Margin="0,5,0,0" />
+            <!-- Acciones de creación -->
+            <Border Style="{StaticResource SectionCardStyle}" Padding="16">
+                <DockPanel LastChildFill="False">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                        <Button Content="Guardar borrador" Width="168"
+                                Margin="0,0,10,0" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding GuardarBorradorCommand}" />
+                        <Button Content="Crear y contabilizar" Width="180"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding ContabilizarCommand}" />
                     </StackPanel>
+                    <Button Content="Actualizar lista" Width="148"
+                            DockPanel.Dock="Right" HorizontalAlignment="Right"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding CargarCommand}" />
+                </DockPanel>
+            </Border>
 
-                    <Button Grid.Column="1"
-                            Content="Contabilizar borrador"
-                            Height="32"
-                            VerticalAlignment="Bottom"
-                            Margin="0,0,12,0"
-                            Command="{Binding ContabilizarBorradorCommand}" />
+            <!-- Estado y resultados -->
+            <Border Style="{StaticResource MessageBorderStyle}">
+                <TextBlock Text="{Binding Mensaje}" TextWrapping="Wrap"
+                           Foreground="#B45309" FontWeight="SemiBold" />
+            </Border>
 
-                    <StackPanel Grid.Column="2"
-                                Margin="0,0,12,0">
-                        <TextBlock Text="Glosa de reversión *" />
-                        <TextBox Text="{Binding GlosaReversa,
-                                                UpdateSourceTrigger=PropertyChanged}"
-                                 Height="28"
-                                 Margin="0,5,0,0" />
+            <Border Style="{StaticResource SectionCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Partidas registradas"
+                               Style="{StaticResource SectionTitleStyle}" />
+                    <DataGrid ItemsSource="{Binding Partidas}"
+                              SelectedItem="{Binding PartidaSeleccionada, Mode=TwoWay}"
+                              Style="{StaticResource ModernGridStyle}" Height="235">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="N°" Binding="{Binding NumeroPartida}" Width="70" />
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=d}" Width="105" />
+                            <DataGridTextColumn Header="Glosa" Binding="{Binding Glosa}" Width="*" MinWidth="300" />
+                            <DataGridTextColumn Header="Origen" Binding="{Binding TipoOrigen}" Width="110" />
+                            <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="145" />
+                            <DataGridTextColumn Header="Líneas" Binding="{Binding Detalles.Count}" Width="80" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
 
-                        <TextBlock Text="Fecha de reversión"
-                                   Margin="0,10,0,0" />
-                        <DatePicker SelectedDate="{Binding FechaReversa}"
-                                    Margin="0,5,0,0" />
-                    </StackPanel>
+            <!-- Contabilizar borradores y reversar partidas -->
+            <Border Style="{StaticResource SectionCardStyle}" Margin="0,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="Acciones de la partida seleccionada"
+                               Style="{StaticResource SectionTitleStyle}" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="165" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="170" />
+                        </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="3"
-                            Content="Reversar partida"
-                            Height="32"
-                            VerticalAlignment="Bottom"
-                            Command="{Binding ReversarCommand}" />
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="Partida seleccionada" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBlock Text="{Binding PartidaSeleccionada.Glosa}"
+                                       FontWeight="SemiBold" Foreground="#1E293B"
+                                       TextWrapping="Wrap" Margin="0,5,0,0" />
+                        </StackPanel>
+                        <Button Grid.Row="0" Grid.Column="1"
+                                Content="Contabilizar borrador"
+                                VerticalAlignment="Bottom" Margin="0,0,12,0"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding ContabilizarBorradorCommand}" />
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,0">
+                            <TextBlock Text="Glosa de reversión *" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding GlosaReversa, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBoxStyle}" />
+                            <TextBlock Text="Fecha de reversión"
+                                       Style="{StaticResource FieldLabelStyle}" Margin="0,10,0,6" />
+                            <DatePicker SelectedDate="{Binding FechaReversa}"
+                                        Style="{StaticResource ModernDateStyle}" />
+                        </StackPanel>
+                        <Button Grid.Row="0" Grid.Column="3"
+                                Content="Reversar partida" VerticalAlignment="Bottom"
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding ReversarCommand}" />
 
-                    <Button Grid.Row="1"
-                            Grid.Column="1"
-                            Content="Actualizar borrador"
-                            Height="32"
-                            Margin="0,12,12,0"
-                            Command="{Binding ActualizarBorradorCommand}" />
-
-                    <Button Grid.Row="1"
-                            Grid.Column="3"
-                            Content="Eliminar borrador"
-                            Height="32"
-                            Margin="0,12,0,0"
-                            Command="{Binding EliminarBorradorCommand}" />
-                </Grid>
-            </GroupBox>
+                        <Button Grid.Row="1" Grid.Column="1"
+                                Content="Actualizar borrador" Margin="0,12,12,0"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding ActualizarBorradorCommand}" />
+                        <Button Grid.Row="1" Grid.Column="3"
+                                Content="Eliminar borrador" Margin="0,12,0,0"
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding EliminarBorradorCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -7,39 +7,244 @@
         <vm:ReglasContablesViewModel/>
     </UserControl.DataContext>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <UserControl.Resources>
+        <!-- Tarjetas reutilizables -->
+        <Style x:Key="CardGroupStyle" TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Border Background="White"
+                                BorderBrush="#E2E8F0"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="20">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#17365D"
+                                                  BlurRadius="14"
+                                                  ShadowDepth="2"
+                                                  Opacity="0.08"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter Grid.Row="0"
+                                                  ContentSource="Header"
+                                                  TextElement.Foreground="#19385D"
+                                                  TextElement.FontSize="17"
+                                                  TextElement.FontWeight="SemiBold"/>
+                                <ContentPresenter Grid.Row="1"
+                                                  ContentSource="Content"
+                                                  Margin="0,16,0,0"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tarjeta secundaria para condiciones adicionales -->
+        <Style x:Key="InnerGroupStyle" TargetType="GroupBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Border Background="#F8FAFC"
+                                BorderBrush="#DCE6F2"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="14">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter Grid.Row="0"
+                                                  ContentSource="Header"
+                                                  TextElement.Foreground="#214D85"
+                                                  TextElement.FontSize="14"
+                                                  TextElement.FontWeight="SemiBold"/>
+                                <ContentPresenter Grid.Row="1"
+                                                  ContentSource="Content"
+                                                  Margin="0,12,0,0"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#243B53"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="FieldTextStyle" TargetType="TextBox">
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Padding" Value="9,6"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="FieldComboStyle" TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+        </Style>
+
+        <Style x:Key="FieldDateStyle" TargetType="DatePicker">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        </Style>
+
+        <!-- Las variantes de botón conservan su color durante el hover -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Padding" Value="13,7"/>
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#214D85"/>
+            <Setter Property="BorderBrush" Value="#D3E2F5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.84"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#285AA2"/>
+            <Setter Property="BorderBrush" Value="#285AA2"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style x:Key="DangerButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#FEECEC"/>
+            <Setter Property="BorderBrush" Value="#F5B5B0"/>
+            <Setter Property="Foreground" Value="#B42318"/>
+        </Style>
+        <Style x:Key="WarningButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#FFF4DB"/>
+            <Setter Property="BorderBrush" Value="#F2D28B"/>
+            <Setter Property="Foreground" Value="#9A6700"/>
+        </Style>
+        <Style x:Key="OutlineButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#C9D8EA"/>
+        </Style>
+
+        <!-- Tablas -->
+        <Style x:Key="ModernGridHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB"/>
+            <Setter Property="Foreground" Value="#214D85"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderBrush" Value="#D8E4F1"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+        <Style x:Key="ModernGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#E7EDF5"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA"/>
+                    <Setter Property="Foreground" Value="#17365D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ModernGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#E7EDF5"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="AlternatingRowBackground" Value="#F8FAFC"/>
+            <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernGridHeaderStyle}"/>
+            <Setter Property="RowStyle" Value="{StaticResource ModernGridRowStyle}"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer Background="#F5F7FA"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Auto">
         <StackPanel Margin="30">
 
             <Grid Margin="0,0,0,20">
                 <TextBlock Text="Reglas contables"
-                           FontSize="26"
+                           FontSize="28"
                            FontWeight="Bold"
+                           Foreground="#0F172A"
                            VerticalAlignment="Center"/>
 
                 <Button Content="Volver al panel"
+                        Style="{StaticResource OutlineButtonStyle}"
                         Width="170"
-                        Height="32"
                         HorizontalAlignment="Right"
                         Click="VolverAlPanelPrincipal_Click"/>
             </Grid>
 
             <GroupBox Header="DTE validados para iniciar una regla"
+                      Style="{StaticResource CardGroupStyle}"
                       Margin="0,0,0,15">
-                <DockPanel Margin="12">
+                <DockPanel Margin="0">
                     <StackPanel DockPanel.Dock="Top"
                                 Margin="0,0,0,8">
                         <TextBlock Text="El tipo se lee del código tipoDte del JSON y la categoría se determina con el rol de la empresa. Los tipos especiales o roles sin identificar requieren revisión."
                                    Foreground="DimGray"
                                    TextWrapping="Wrap"/>
                         <Button Content="Usar DTE seleccionado para nueva regla"
+                                Style="{StaticResource PrimaryButtonStyle}"
                                 Width="270"
-                                Height="30"
                                 HorizontalAlignment="Right"
                                 Margin="0,8,0,0"
                                 Command="{Binding UsarDteSeleccionadoCommand}"/>
                     </StackPanel>
 
-                    <DataGrid ItemsSource="{Binding DtesValidados}"
+                    <DataGrid Style="{StaticResource ModernGridStyle}"
+                              ItemsSource="{Binding DtesValidados}"
                               SelectedItem="{Binding DteSeleccionadoParaRegla,
                                                      Mode=TwoWay}"
                               AutoGenerateColumns="False"
@@ -76,8 +281,9 @@
             </GroupBox>
 
             <GroupBox Header="Nueva regla contable"
+                      Style="{StaticResource CardGroupStyle}"
                       Margin="0,0,0,15">
-                <Grid Margin="15">
+                <Grid Margin="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="1.5*"/>
@@ -93,51 +299,46 @@
                     <StackPanel Grid.Row="0"
                                 Grid.Column="0"
                                 Margin="0,0,12,12">
-                        <TextBlock Text="Nombre de la regla *"/>
-                        <TextBox Text="{Binding NombreRegla,
+                        <TextBlock Text="Nombre de la regla *" Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox Style="{StaticResource FieldTextStyle}" Text="{Binding NombreRegla,
                                                 UpdateSourceTrigger=PropertyChanged}"
-                                 Height="28"
                                  Margin="0,5,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="0"
                                 Grid.Column="1"
                                 Margin="0,0,12,12">
-                        <TextBlock Text="Aplicar a tipo de DTE"/>
-                        <ComboBox ItemsSource="{Binding TiposDte}"
+                        <TextBlock Text="Aplicar a tipo de DTE" Style="{StaticResource FieldLabelStyle}"/>
+                        <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding TiposDte}"
                                   SelectedItem="{Binding TipoDteSeleccionado}"
                                   DisplayMemberPath="Descripcion"
-                                 Height="28"
                                  Margin="0,5,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="0"
                                 Grid.Column="2"
                                 Margin="0,0,0,12">
-                        <TextBlock Text="Rol de empresa"/>
-                        <ComboBox ItemsSource="{Binding RolesEmpresa}"
+                        <TextBlock Text="Rol de empresa" Style="{StaticResource FieldLabelStyle}"/>
+                        <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding RolesEmpresa}"
                                   SelectedValuePath="Valor"
                                   DisplayMemberPath="Descripcion"
                                   SelectedValue="{Binding RolEmpresaSeleccionado}"
-                                  Height="28"
                                   Margin="0,5,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1"
                                 Grid.Column="0"
                                 Margin="0,0,12,12">
-                        <TextBlock Text="Vigencia desde"/>
-                        <DatePicker SelectedDate="{Binding VigenciaDesde}"
-                                    Height="28"
+                        <TextBlock Text="Vigencia desde" Style="{StaticResource FieldLabelStyle}"/>
+                        <DatePicker Style="{StaticResource FieldDateStyle}" SelectedDate="{Binding VigenciaDesde}"
                                     Margin="0,5,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1"
                                 Grid.Column="1"
                                 Margin="0,0,12,12">
-                        <TextBlock Text="Vigencia hasta"/>
-                        <DatePicker SelectedDate="{Binding VigenciaHasta}"
-                                    Height="28"
+                        <TextBlock Text="Vigencia hasta" Style="{StaticResource FieldLabelStyle}"/>
+                        <DatePicker Style="{StaticResource FieldDateStyle}" SelectedDate="{Binding VigenciaHasta}"
                                     Margin="0,5,0,0"/>
                     </StackPanel>
 
@@ -145,14 +346,14 @@
                                 Grid.Column="2"
                                 VerticalAlignment="Bottom">
                         <Button Content="Crear regla"
-                                Height="30"
+                                Style="{StaticResource PrimaryButtonStyle}"
                                 Command="{Binding CrearReglaCommand}"/>
                         <Button Content="Actualizar regla seleccionada"
-                                Height="30"
+                                Style="{StaticResource ModernButtonStyle}"
                                 Margin="0,6,0,0"
                                 Command="{Binding ActualizarReglaCommand}"/>
                         <Button Content="Eliminar regla seleccionada"
-                                Height="30"
+                                Style="{StaticResource DangerButtonStyle}"
                                 Margin="0,6,0,0"
                                 Command="{Binding EliminarReglaCommand}"/>
                     </StackPanel>
@@ -160,6 +361,7 @@
                     <GroupBox Grid.Row="2"
                               Grid.ColumnSpan="3"
                               Header="Condiciones adicionales"
+                              Style="{StaticResource InnerGroupStyle}"
                               Margin="0,0,0,5">
                         <StackPanel Margin="10">
                             <TextBlock Text="Agrega criterios por importe. Si agregas varios, todos deben cumplirse para aplicar la regla."
@@ -171,17 +373,18 @@
                                         HorizontalAlignment="Right"
                                         Margin="0,0,0,6">
                                 <Button Content="Agregar condición"
-                                        Height="28"
+                                        Style="{StaticResource PrimaryButtonStyle}"
                                         Padding="10,0"
                                         Margin="0,0,6,0"
                                         Command="{Binding AgregarCondicionCommand}"/>
                                 <Button Content="Quitar seleccionada"
-                                        Height="28"
+                                        Style="{StaticResource DangerButtonStyle}"
                                         Padding="10,0"
                                         Command="{Binding QuitarCondicionCommand}"/>
                             </StackPanel>
 
-                            <DataGrid ItemsSource="{Binding Condiciones}"
+                            <DataGrid Style="{StaticResource ModernGridStyle}"
+                                      ItemsSource="{Binding Condiciones}"
                                       SelectedItem="{Binding CondicionSeleccionada}"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
@@ -195,7 +398,7 @@
                                                             Width="2*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <ComboBox ItemsSource="{Binding Campos}"
+                                                <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding Campos}"
                                                           SelectedValuePath="Valor"
                                                           DisplayMemberPath="Descripcion"
                                                           SelectedValue="{Binding Campo,
@@ -207,7 +410,7 @@
                                                             Width="2*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <ComboBox ItemsSource="{Binding Operadores}"
+                                                <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding Operadores}"
                                                           SelectedValuePath="Valor"
                                                           DisplayMemberPath="Descripcion"
                                                           SelectedValue="{Binding Operador,
@@ -219,7 +422,7 @@
                                                             Width="*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBox Text="{Binding Valor,
+                                                <TextBox Style="{StaticResource FieldTextStyle}" Text="{Binding Valor,
                                                                         UpdateSourceTrigger=PropertyChanged}"
                                                          BorderThickness="0"
                                                          Padding="3"/>
@@ -232,7 +435,7 @@
                             <TextBlock Text="Vista previa de la condición generada"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding CondicionJsonVistaPrevia, Mode=OneWay}"
+                            <TextBox Style="{StaticResource FieldTextStyle}" Text="{Binding CondicionJsonVistaPrevia, Mode=OneWay}"
                                      IsReadOnly="True"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
@@ -243,23 +446,45 @@
                 </Grid>
             </GroupBox>
 
-            <TextBlock Text="{Binding Mensaje}"
-                       Foreground="DarkRed"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,12"/>
+            <!-- Estado: mostrar solo cuando existe un mensaje -->
+            <Border Background="#FFF7ED"
+                    BorderBrush="#FED7AA"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="14,10"
+                    Margin="0,0,0,16">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Mensaje}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding Mensaje}"
+                           Foreground="#B45309"
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap"/>
+            </Border>
 
             <GroupBox Header="Reglas registradas"
+                      Style="{StaticResource CardGroupStyle}"
                       Margin="0,0,0,15">
-                <DockPanel Margin="15">
+                <DockPanel Margin="0">
                     <Button DockPanel.Dock="Top"
                             Content="Actualizar lista"
+                                Style="{StaticResource OutlineButtonStyle}"
                             Width="140"
-                            Height="28"
                             HorizontalAlignment="Right"
                             Margin="0,0,0,10"
                             Command="{Binding CargarCommand}"/>
 
-                    <DataGrid ItemsSource="{Binding Reglas}"
+                    <DataGrid Style="{StaticResource ModernGridStyle}"
+                              ItemsSource="{Binding Reglas}"
                               SelectedItem="{Binding ReglaSeleccionada,
                                                      Mode=TwoWay}"
                               AutoGenerateColumns="False"
@@ -292,8 +517,9 @@
                 </DockPanel>
             </GroupBox>
 
-            <GroupBox Header="Cuentas de la regla seleccionada">
-                <Grid Margin="15">
+            <GroupBox Header="Cuentas de la regla seleccionada"
+                      Style="{StaticResource CardGroupStyle}">
+                <Grid Margin="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -310,61 +536,58 @@
 
                         <StackPanel Grid.Column="0"
                                     Margin="0,0,12,0">
-                            <TextBlock Text="Cuenta contable"/>
-                            <ComboBox ItemsSource="{Binding CuentasCatalogo}"
+                            <TextBlock Text="Cuenta contable" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding CuentasCatalogo}"
                                       SelectedItem="{Binding CuentaSeleccionada}"
                                       DisplayMemberPath="Nombre"
-                                      Height="28"
                                       Margin="0,5,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1"
                                     Margin="0,0,12,0">
-                            <TextBlock Text="Lado"/>
-                            <ComboBox ItemsSource="{Binding LadosContables}"
+                            <TextBlock Text="Lado" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding LadosContables}"
                                       SelectedItem="{Binding LadoSeleccionado}"
-                                      Height="28"
                                       Margin="0,5,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2"
                                     Margin="0,0,12,0">
-                            <TextBlock Text="Importe de la línea"/>
-                            <ComboBox ItemsSource="{Binding FormulasContables}"
+                            <TextBlock Text="Importe de la línea" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox Style="{StaticResource FieldComboStyle}" ItemsSource="{Binding FormulasContables}"
                                       SelectedItem="{Binding FormulaSeleccionada}"
                                       DisplayMemberPath="Descripcion"
-                                      Height="28"
                                       Margin="0,5,0,0"/>
-                            <TextBox Text="{Binding ImporteFijo,
+                            <TextBox Style="{StaticResource FieldTextStyle}" Text="{Binding ImporteFijo,
                                                     UpdateSourceTrigger=PropertyChanged}"
                                      IsEnabled="{Binding FormulaSeleccionada.EsImporteFijo}"
                                      ToolTip="Completa este campo solo si seleccionas Importe fijo."
-                                     Height="28"
                                      Margin="0,5,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="3">
                             <Button Content="Agregar línea"
-                                    Height="28"
+                                Style="{StaticResource PrimaryButtonStyle}"
                                     Margin="0,20,0,6"
                                     Command="{Binding AgregarCuentaCommand}"/>
 
                             <Button Content="Activar / Desactivar regla"
-                                    Height="28"
+                                Style="{StaticResource WarningButtonStyle}"
                                     Command="{Binding CambiarEstadoCommand}"/>
 
                             <Button Content="Actualizar línea seleccionada"
-                                    Height="28"
+                                Style="{StaticResource ModernButtonStyle}"
                                     Margin="0,6,0,0"
                                     Command="{Binding ActualizarCuentaCommand}"/>
                             <Button Content="Eliminar línea seleccionada"
-                                    Height="28"
+                                Style="{StaticResource DangerButtonStyle}"
                                     Margin="0,6,0,0"
                                     Command="{Binding EliminarCuentaCommand}"/>
                         </StackPanel>
                     </Grid>
 
-                    <DataGrid Grid.Row="1"
+                    <DataGrid Style="{StaticResource ModernGridStyle}"
+                              Grid.Row="1"
                               ItemsSource="{Binding LineasRegla}"
                               SelectedItem="{Binding LineaReglaSeleccionada}"
                               AutoGenerateColumns="False"

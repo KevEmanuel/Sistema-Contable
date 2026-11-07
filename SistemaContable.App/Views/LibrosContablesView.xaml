@@ -7,7 +7,173 @@
         <vm:LibrosContablesViewModel />
     </UserControl.DataContext>
 
-    <Grid Margin="30">
+    <UserControl.Resources>
+        <!-- Diseño compartido: tarjetas y etiquetas -->
+        <Style x:Key="SurfaceCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#E2E8F0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#17365D" BlurRadius="14"
+                                      ShadowDepth="2" Opacity="0.08" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#243B53" />
+            <Setter Property="Margin" Value="0,0,0,7" />
+        </Style>
+
+        <Style x:Key="FilterComboStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1E293B" />
+        </Style>
+
+        <Style x:Key="FilterDateStyle" TargetType="DatePicker">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1E293B" />
+        </Style>
+
+        <!-- Los botones conservan sus eventos Click y comandos -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="39" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Background" Value="#285AA2" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#285AA2" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#1F4E79" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#17365D" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BackButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="#1F4E79" />
+            <Setter Property="BorderBrush" Value="#CADBF0" />
+        </Style>
+
+        <!-- Pestañas redondeadas -->
+        <Style x:Key="BookTabStyle" TargetType="TabItem">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#50647E" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabChrome" Background="#F1F5F9"
+                                BorderBrush="#E2E8F0" BorderThickness="1"
+                                CornerRadius="8,8,0,0" Padding="22,12">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabChrome" Property="Background" Value="#EAF1FB" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabChrome" Property="Background" Value="#285AA2" />
+                                <Setter TargetName="TabChrome" Property="BorderBrush" Value="#285AA2" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BookHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#EAF1FB" />
+            <Setter Property="Foreground" Value="#1F4E79" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="BorderBrush" Value="#D8E4F1" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="BookRowStyle" TargetType="DataGridRow">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Foreground" Value="#243B53" />
+            <Setter Property="BorderBrush" Value="#EDF2F7" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFA" />
+                    <Setter Property="Foreground" Value="#17365D" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BookGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#EDF2F7" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F8FAFC" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="RowHeaderWidth" Value="0" />
+            <Setter Property="ColumnHeaderStyle" Value="{StaticResource BookHeaderStyle}" />
+            <Setter Property="RowStyle" Value="{StaticResource BookRowStyle}" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -15,102 +181,117 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
-              Margin="0,0,0,18">
-            <TextBlock Text="Libros contables"
-                       FontSize="26"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center" />
-
-            <Button Content="Volver al panel"
-                    Width="170"
-                    Height="32"
-                    HorizontalAlignment="Right"
+        <!-- Encabezado -->
+        <Grid Grid.Row="0" Margin="32,28,32,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Libros contables" FontSize="28" FontWeight="Bold"
+                           Foreground="#0F172A" />
+                <TextBlock Text="Consultá movimientos del Diario y saldos del Mayor"
+                           Foreground="#64748B" FontSize="12" Margin="0,5,0,0" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Volver al panel"
+                    Style="{StaticResource BackButtonStyle}"
+                    VerticalAlignment="Center"
                     Click="VolverAlPanelPrincipal_Click" />
         </Grid>
 
-        <GroupBox Grid.Row="1"
-                  Header="Período y fechas"
-                  Margin="0,0,0,12">
-            <Grid Margin="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="130" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Período contable" />
-                    <ComboBox ItemsSource="{Binding Periodos}"
-                              SelectedItem="{Binding PeriodoSeleccionado}"
-                              DisplayMemberPath="Nombre"
-                              Height="28"
-                              Margin="0,5,0,0" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Desde" />
-                    <DatePicker SelectedDate="{Binding FechaDesde}"
-                                Height="28"
-                                Margin="0,5,0,0" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="2"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="Hasta" />
-                    <DatePicker SelectedDate="{Binding FechaHasta}"
-                                Height="28"
-                                Margin="0,5,0,0" />
-                </StackPanel>
-
-                <Button Grid.Column="3"
-                        Content="Actualizar"
-                        Height="30"
-                        VerticalAlignment="Bottom"
-                        Command="{Binding CargarCommand}" />
+        <!-- Filtros -->
+        <Border Grid.Row="1" Style="{StaticResource SurfaceCardStyle}"
+                Margin="32,0,32,14" Padding="20,18">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Período y fechas"
+                           FontSize="16" FontWeight="Bold" Foreground="#1F4E79"
+                           Margin="0,0,0,16" />
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="140" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                        <TextBlock Text="Período contable" Style="{StaticResource FieldLabelStyle}" />
+                        <ComboBox ItemsSource="{Binding Periodos}"
+                                  SelectedItem="{Binding PeriodoSeleccionado}"
+                                  DisplayMemberPath="Nombre"
+                                  Style="{StaticResource FilterComboStyle}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                        <TextBlock Text="Desde" Style="{StaticResource FieldLabelStyle}" />
+                        <DatePicker SelectedDate="{Binding FechaDesde}"
+                                    Style="{StaticResource FilterDateStyle}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                        <TextBlock Text="Hasta" Style="{StaticResource FieldLabelStyle}" />
+                        <DatePicker SelectedDate="{Binding FechaHasta}"
+                                    Style="{StaticResource FilterDateStyle}" />
+                    </StackPanel>
+                    <Button Grid.Column="3" Content="Actualizar"
+                            Style="{StaticResource ActionButtonStyle}"
+                            VerticalAlignment="Bottom"
+                            Command="{Binding CargarCommand}" />
+                </Grid>
             </Grid>
-        </GroupBox>
+        </Border>
 
-        <TextBlock Grid.Row="2"
-                   Text="{Binding Mensaje}"
-                   Foreground="DarkRed"
-                   TextWrapping="Wrap"
-                   Margin="0,0,0,10" />
+        <!-- Mensaje: no ocupa espacio cuando está vacío -->
+        <Border Grid.Row="2" Margin="32,0,32,12" Padding="14,10"
+                Background="#FFF7ED" BorderBrush="#FED7AA"
+                BorderThickness="1" CornerRadius="9">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Mensaje}" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Mensaje}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding Mensaje}" TextWrapping="Wrap"
+                       Foreground="#B45309" FontWeight="SemiBold" />
+        </Border>
 
-        <TabControl Grid.Row="3">
-            <TabItem Header="Libro Diario">
-                <Grid Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <DockPanel Grid.Row="0"
-                               Margin="0,0,0,8">
-                        <Button Content="Exportar Diario"
-                                Width="160"
-                                Height="30"
-                                HorizontalAlignment="Right"
-                                DockPanel.Dock="Right"
-                                Click="ExportarDiario_Click" />
-                        <TextBlock Text="{Binding TotalDebeDiario,
-                                                  StringFormat='Debe: {0:N2}'}"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,18,0" />
-                        <TextBlock Text="{Binding TotalHaberDiario,
-                                                  StringFormat='Haber: {0:N2}'}"
-                                   VerticalAlignment="Center" />
-                    </DockPanel>
-
-                    <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding LibroDiario}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False">
-                        <DataGrid.Columns>
+        <!-- Libros -->
+        <Border Grid.Row="3" Margin="32,0,32,26" Padding="14"
+                Style="{StaticResource SurfaceCardStyle}">
+            <TabControl Background="Transparent" BorderThickness="0">
+                <TabItem Header="Libro Diario" Style="{StaticResource BookTabStyle}">
+                    <Grid Margin="4,14,4,4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" Margin="0,0,0,14" LastChildFill="True">
+                            <Button Content="Exportar Diario" Width="160"
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Click="ExportarDiario_Click" />
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#EAF1FB" CornerRadius="8" Padding="14,9"
+                                        Margin="0,0,10,0">
+                                    <TextBlock Text="{Binding TotalDebeDiario, StringFormat='Debe: {0:N2}'}"
+                                               Foreground="#214D85" FontWeight="SemiBold" />
+                                </Border>
+                                <Border Background="#EEF7F2" CornerRadius="8" Padding="14,9">
+                                    <TextBlock Text="{Binding TotalHaberDiario, StringFormat='Haber: {0:N2}'}"
+                                               Foreground="#176349" FontWeight="SemiBold" />
+                                </Border>
+                            </StackPanel>
+                        </DockPanel>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding LibroDiario}"
+                                  Style="{StaticResource BookGridStyle}">
+                            <DataGrid.Columns>
                             <DataGridTextColumn Header="Fecha"
                                                 Binding="{Binding Fecha,
                                                                   StringFormat=d}"
@@ -142,40 +323,36 @@
                                                                   StringFormat=N2}"
                                                 Width="110" />
                         </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
 
-            <TabItem Header="Libro Mayor">
-                <Grid Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <DockPanel Grid.Row="0"
-                               Margin="0,0,0,8">
-                        <Button Content="Exportar Mayor"
-                                Width="160"
-                                Height="30"
-                                HorizontalAlignment="Right"
-                                DockPanel.Dock="Right"
-                                Click="ExportarMayor_Click" />
-                        <TextBlock Text="{Binding TotalDebeMayor,
-                                                  StringFormat='Movimientos Debe: {0:N2}'}"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,18,0" />
-                        <TextBlock Text="{Binding TotalHaberMayor,
-                                                  StringFormat='Movimientos Haber: {0:N2}'}"
-                                   VerticalAlignment="Center" />
-                    </DockPanel>
-
-                    <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding LibroMayor}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False">
-                        <DataGrid.Columns>
+                <TabItem Header="Libro Mayor" Style="{StaticResource BookTabStyle}">
+                    <Grid Margin="4,14,4,4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" Margin="0,0,0,14" LastChildFill="True">
+                            <Button Content="Exportar Mayor" Width="160"
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Click="ExportarMayor_Click" />
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#EAF1FB" CornerRadius="8" Padding="14,9"
+                                        Margin="0,0,10,0">
+                                    <TextBlock Text="{Binding TotalDebeMayor, StringFormat='Movimientos Debe: {0:N2}'}"
+                                               Foreground="#214D85" FontWeight="SemiBold" />
+                                </Border>
+                                <Border Background="#EEF7F2" CornerRadius="8" Padding="14,9">
+                                    <TextBlock Text="{Binding TotalHaberMayor, StringFormat='Movimientos Haber: {0:N2}'}"
+                                               Foreground="#176349" FontWeight="SemiBold" />
+                                </Border>
+                            </StackPanel>
+                        </DockPanel>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding LibroMayor}"
+                                  Style="{StaticResource BookGridStyle}">
+                            <DataGrid.Columns>
                             <DataGridTextColumn Header="Cuenta"
                                                 Binding="{Binding CodigoCuenta}"
                                                 Width="100" />
@@ -212,9 +389,10 @@
                                                                   StringFormat=N2}"
                                                 Width="115" />
                         </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
-        </TabControl>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Border>
     </Grid>
 </UserControl>
